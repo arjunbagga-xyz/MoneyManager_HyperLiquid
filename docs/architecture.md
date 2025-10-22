@@ -66,6 +66,14 @@ Even as an internal tool, security is a priority.
 -   **Private Key Storage:** Wallet private keys are encrypted using the `cryptography` library before being stored in the database, providing a critical layer of security.
 -   **Configuration:** Sensitive information like database credentials and secret keys are managed through environment variables and are not hardcoded in the source.
 
+## Bot Execution Engine
+
+The bot execution engine is a core component of the platform, designed to run custom user-provided Python code in a secure and managed way.
+
+-   **Process Isolation:** Each bot is run in its own separate process using Python's `multiprocessing` library. This ensures that a crash or error in one bot will not affect the main application or any other running bots.
+-   **Dynamic Execution:** The `exec` function is used to execute the bot's code. A global context is provided to the bot, which includes its runtime inputs and the private key for the selected wallet. In the future, this context can be expanded to include pre-configured API clients, logging functions, and other utilities.
+-   **State Management:** A `BotRunner` singleton is used to keep track of all active bot processes, allowing them to be started and stopped via the API.
+
 ## Future Extensibility
 
 The architecture is designed with future growth in mind. The exchange integration logic is encapsulated within a dedicated module, which will make it easier to add support for other exchanges in the future without requiring a major overhaul of the system.

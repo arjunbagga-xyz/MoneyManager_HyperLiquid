@@ -59,3 +59,7 @@ def create_bot(db: Session, bot: schemas.BotCreate, user_id: int):
     db.commit()
     db.refresh(db_bot)
     return db_bot
+
+
+def get_bot(db: Session, bot_id: int, user_id: int):
+    return db.query(models.Bot).filter(models.Bot.id == bot_id, models.Bot.owner_id == user_id).first()

@@ -118,3 +118,43 @@ A list of wallet objects, as shown below:
   }
 ]
 ```
+
+---
+
+## Bot Management
+
+### `POST /bots/{bot_id}/run`
+
+Starts a new process for the specified bot.
+
+**Request Body:**
+
+```json
+{
+  "wallet_id": 0,
+  "capital_allocation": 0.0,
+  "runtime_inputs": {}
+}
+```
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "message": "Bot <bot_id> started with PID <process_id>"
+}
+```
+
+### `POST /bots/{bot_id}/stop`
+
+Stops a running bot process.
+
+**Response:**
+
+```json
+{
+  "status": "success",
+  "message": "Bot <bot_id> stopped"
+}
+```

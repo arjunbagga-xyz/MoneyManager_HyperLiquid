@@ -42,6 +42,12 @@ class OrderRequest(BaseModel):
     order_type: dict
 
 
+class BotRunRequest(BaseModel):
+    wallet_id: int
+    capital_allocation: float
+    runtime_inputs: dict
+
+
 class WalletWithKey(Wallet):
     private_key: str
 
