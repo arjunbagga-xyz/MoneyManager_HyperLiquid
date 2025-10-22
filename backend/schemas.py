@@ -48,6 +48,12 @@ class BotRunRequest(BaseModel):
     runtime_inputs: dict
 
 
+class VaultDepositRequest(BaseModel):
+    wallet_id: int
+    vault_address: str
+    amount: int
+
+
 class WalletWithKey(Wallet):
     private_key: str
 

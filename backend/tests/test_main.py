@@ -3,12 +3,11 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-
-from ..app import create_app
-from ..database import Base
-from ..config import settings
-from ..hyperliquid_api import HyperliquidAPI
 from unittest.mock import MagicMock, patch
+
+from backend.app import create_app
+from backend.database import Base, get_db
+from backend.hyperliquid_api import HyperliquidAPI
 
 # Use an in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -22,37 +21,22 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 
 def override_get_db():
-    db = TestingSessionLocal()
     try:
+        db = TestingSessionLocal()
         yield db
     finally:
         db.close()
 
-@pytest.fixture(scope="function")
-def app():
+@pytest.fixture()
+def client():
     app = create_app()
-    app.dependency_overrides[app.dependency_overrides.get('get_db', get_db)] = override_get_db
-    yield app
-    app.dependency_overrides = {}
-
-
-@pytest.fixture(scope="function")
-def db_session(app):
     Base.metadata.create_all(bind=engine)
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-        Base.metadata.drop_all(bind=engine)
-
-
-@pytest.fixture(scope="function")
-def client(app, db_session):
+    app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
+    Base.metadata.drop_all(bind=engine)
 
 
-def test_create_user(client):
+def test_create_user(client: TestClient):
     response = client.post(
         "/users/",
         json={"username": "testuser", "password": "testpassword"},
@@ -62,8 +46,7 @@ def test_create_user(client):
     assert data["username"] == "testuser"
     assert "id" in data
 
-
-def test_login_for_access_token(client):
+def test_login_for_access_token(client: TestClient):
     client.post("/users/", json={"username": "testuser", "password": "testpassword"})
     response = client.post(
         "/token",
@@ -74,9 +57,7 @@ def test_login_for_access_token(client):
     assert "access_token" in data
     assert data["token_type"] == "bearer"
 
-
-@pytest.fixture(scope="function")
-def authenticated_client(client):
+def authenticated_client(client: TestClient) -> TestClient:
     client.post("/users/", json={"username": "testuser", "password": "testpassword"})
     response = client.post(
         "/token",
@@ -86,16 +67,16 @@ def authenticated_client(client):
     client.headers = {"Authorization": f"Bearer {token}"}
     return client
 
-
-def test_read_users_me(authenticated_client):
-    response = authenticated_client.get("/users/me/")
+def test_read_users_me(client: TestClient):
+    auth_client = authenticated_client(client)
+    response = auth_client.get("/users/me/")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["username"] == "testuser"
 
-
-def test_create_and_read_wallet(authenticated_client):
-    create_response = authenticated_client.post(
+def test_create_and_read_wallet(client: TestClient):
+    auth_client = authenticated_client(client)
+    create_response = auth_client.post(
         "/wallets/",
         json={"name": "test_wallet", "address": "test_address", "private_key": "test_key"},
     )
@@ -104,7 +85,7 @@ def test_create_and_read_wallet(authenticated_client):
     assert create_data["name"] == "test_wallet"
     assert create_data["address"] == "test_address"
     assert "id" in create_data
-    read_response = authenticated_client.get("/wallets/")
+    read_response = auth_client.get("/wallets/")
     assert read_response.status_code == 200, read_response.text
     read_data = read_response.json()
     assert isinstance(read_data, list)
@@ -112,9 +93,9 @@ def test_create_and_read_wallet(authenticated_client):
     assert read_data[0]["name"] == "test_wallet"
     assert "private_key" not in read_data[0]
 
-
-def test_create_and_read_bot(authenticated_client):
-    create_response = authenticated_client.post(
+def test_create_and_read_bot(client: TestClient):
+    auth_client = authenticated_client(client)
+    create_response = auth_client.post(
         "/bots/",
         json={
             "name": "test_bot",
@@ -127,23 +108,23 @@ def test_create_and_read_bot(authenticated_client):
     assert create_data["name"] == "test_bot"
     assert create_data["code"] == "print('hello')"
     assert "id" in create_data
-    read_response = authenticated_client.get("/bots/")
+    read_response = auth_client.get("/bots/")
     assert read_response.status_code == 200, read_response.text
     read_data = read_response.json()
     assert isinstance(read_data, list)
     assert len(read_data) == 1
     assert read_data[0]["name"] == "test_bot"
 
-
 @patch("backend.app.HyperliquidAPI")
-def test_place_order(mock_hl_api_class, authenticated_client, db_session):
+def test_place_order(mock_hl_api_class, client: TestClient):
+    auth_client = authenticated_client(client)
     mock_hl_api_instance = mock_hl_api_class.return_value
-    wallet_response = authenticated_client.post(
+    wallet_response = auth_client.post(
         "/wallets/",
         json={"name": "trading_wallet", "address": "trading_address", "private_key": "0x4929aa0dad4277f6a1a0a7f940d2ace1a503a5fcc90ac9d092c9c9a5939331cf"},
     )
     wallet_id = wallet_response.json()["id"]
-    order_response = authenticated_client.post(
+    order_response = auth_client.post(
         f"/wallets/{wallet_id}/order",
         json={
             "symbol": "BTC",
@@ -154,22 +135,22 @@ def test_place_order(mock_hl_api_class, authenticated_client, db_session):
         },
     )
     assert order_response.status_code == 200, order_response.text
-    mock_hl_api_instance.place_order.assert_called_once()
-
+    assert mock_hl_api_instance.place_order.called
 
 @patch("backend.app.bot_runner", new_callable=MagicMock)
-def test_run_bot(mock_bot_runner, authenticated_client, db_session):
-    wallet_response = authenticated_client.post(
+def test_run_bot(mock_bot_runner, client: TestClient):
+    auth_client = authenticated_client(client)
+    wallet_response = auth_client.post(
         "/wallets/",
         json={"name": "bot_wallet", "address": "bot_address", "private_key": "0x4929aa0dad4277f6a1a0a7f940d2ace1a503a5fcc90ac9d092c9c9a5939331cf"},
     )
     wallet_id = wallet_response.json()["id"]
-    bot_response = authenticated_client.post(
+    bot_response = auth_client.post(
         "/bots/",
         json={"name": "test_bot", "code": "print('hello')", "input_schema": {}},
     )
     bot_id = bot_response.json()["id"]
-    run_response = authenticated_client.post(
+    run_response = auth_client.post(
         f"/bots/{bot_id}/run",
         json={
             "wallet_id": wallet_id,
@@ -180,10 +161,9 @@ def test_run_bot(mock_bot_runner, authenticated_client, db_session):
     assert run_response.status_code == 200, run_response.text
     mock_bot_runner.start_bot.assert_called_once()
 
-# Helper function to get the real get_db dependency if it's not overridden
-def get_db():
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+@patch.object(HyperliquidAPI, "get_vault_meta", return_value=[{"name": "Test Vault"}])
+def test_get_vault_meta(mock_get_vault_meta, client: TestClient):
+    auth_client = authenticated_client(client)
+    response = auth_client.get("/vaults/meta")
+    assert response.status_code == 200
+    assert response.json() == [{"name": "Test Vault"}]

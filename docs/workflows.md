@@ -45,3 +45,22 @@ This workflow describes how a custom trading bot is executed.
     -   The bot can then use these credentials to connect to the exchange and begin its trading logic.
 
 ![Bot Execution Workflow Diagram](https://i.imgur.com/example.png) <!-- Placeholder for a diagram -->
+
+---
+
+## Vault Deposit Workflow
+
+This workflow describes how a user deposits funds into a vault.
+
+1.  **User Navigates to Vaults:**
+    -   The user opens the "Vaults" page.
+    -   The frontend fetches and displays a list of available vaults from the `/vaults/meta` endpoint.
+
+2.  **User Submits Deposit:**
+    -   The user selects a vault, a wallet to deposit from, and an amount.
+    -   The user submits the deposit form.
+
+3.  **Backend Processes Request:**
+    -   The frontend sends a `POST` request to the `/vaults/deposit` endpoint.
+    -   The backend retrieves the selected wallet's private key.
+    -   It then calls the Hyperliquid API to execute the vault transfer.

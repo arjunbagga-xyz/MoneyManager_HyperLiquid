@@ -22,6 +22,14 @@ class HyperliquidAPI(ExchangeInterface):
     def get_meta(self):
         return self.info.meta()
 
+    def get_vault_meta(self):
+        return self.info.vault_meta()
+
+    def vault_deposit(self, vault_address: str, amount: int):
+        if not self.exchange:
+            raise Exception("Exchange not initialized. Provide a private key.")
+        return self.exchange.vault_transfer(vault_address, True, amount)
+
     def place_order(self, symbol: str, is_buy: bool, sz: float, limit_px: float, order_type: dict):
         if not self.exchange:
             raise Exception("Exchange not initialized. Provide a private key.")

@@ -23,7 +23,44 @@
 
     <main>
         <h2>Vaults</h2>
-        <!-- Vaults interface will go here -->
+
+        <section id="vault-deposit">
+            <h3>Deposit to Vault</h3>
+            <form id="deposit-form">
+                <div>
+                    <label for="vault-selector">Select Vault:</label>
+                    <select id="vault-selector" required></select>
+                </div>
+                <div>
+                    <label for="wallet-selector">From Wallet:</label>
+                    <select id="wallet-selector" required></select>
+                </div>
+                <div>
+                    <label for="deposit-amount">Amount (USDC):</label>
+                    <input type="number" id="deposit-amount" step="any" required>
+                </div>
+                <br>
+                <button type="submit">Deposit</button>
+            </form>
+            <div id="deposit-message"></div>
+        </section>
+
+        <hr>
+
+        <h3>Available Vaults</h3>
+        <table id="vaults-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Vaults will be dynamically inserted here -->
+            </tbody>
+        </table>
     </main>
+
+    <script src="js/vaults.js"></script>
 </body>
 </html>

@@ -158,3 +158,33 @@ Stops a running bot process.
   "message": "Bot <bot_id> stopped"
 }
 ```
+
+---
+
+## Vaults
+
+### `GET /vaults/meta`
+
+Retrieves metadata for all available vaults.
+
+**Response:**
+
+A list of vault metadata objects.
+
+### `POST /vaults/deposit`
+
+Deposits USDC into a vault from a managed wallet.
+
+**Request Body:**
+
+```json
+{
+  "wallet_id": 0,
+  "vault_address": "string",
+  "amount": 0
+}
+```
+
+**Response:**
+
+A confirmation of the vault transfer.
