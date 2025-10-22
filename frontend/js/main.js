@@ -1,24 +1,32 @@
 // Main JavaScript file for the trading platform
 
 document.addEventListener("DOMContentLoaded", () => {
-    const walletList = document.getElementById("wallet-list");
+    const token = localStorage.getItem("jwt");
+    if (!token) {
+        // If no token is found, redirect to the account page to log in
+        window.location.href = "account.html";
+        return; // Stop further execution
+    }
 
+    const walletList = document.getElementById("wallet-list");
     if (walletList) {
-        fetchWallets();
+        fetchWallets(token);
     }
 });
 
-async function fetchWallets() {
-    //
-    // In a real application, you would get the JWT from a secure storage after the user logs in.
-    const token = "your-jwt-token"; // Replace with a valid token for testing
-
+async function fetchWallets(token) {
     try {
         const response = await fetch("http://localhost:8000/wallets/", {
             headers: {
                 "Authorization": `Bearer ${token}`
             }
         });
+
+        if (response.status === 401) {
+            // If the token is invalid or expired, redirect to the login page
+            window.location.href = "account.html";
+            return;
+        }
 
         if (!response.ok) {
             throw new Error("Failed to fetch wallets");
@@ -29,7 +37,7 @@ async function fetchWallets() {
     } catch (error) {
         console.error("Error fetching wallets:", error);
         const walletList = document.getElementById("wallet-list");
-        walletList.innerHTML = "<p>Error loading wallets. Please make sure you are logged in.</p>";
+        walletList.innerHTML = "<p>Error loading wallets. Please try again.</p>";
     }
 }
 
