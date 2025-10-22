@@ -23,7 +23,84 @@
 
     <main>
         <h2>Trading</h2>
-        <!-- Trading interface will go here -->
+
+        <section id="trading-interface">
+            <div>
+                <label for="wallet-selector">Select Wallet:</label>
+                <select id="wallet-selector"></select>
+            </div>
+
+            <hr>
+
+            <h3>Place an Order</h3>
+            <form id="order-form">
+                <div>
+                    <label for="symbol">Symbol:</label>
+                    <input type="text" id="symbol" required>
+                </div>
+                <div>
+                    <label for="side">Side:</label>
+                    <select id="side">
+                        <option value="buy">Buy</option>
+                        <option value="sell">Sell</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="size">Size:</label>
+                    <input type="number" id="size" step="any" required>
+                </div>
+                <div>
+                    <label for="price">Price:</label>
+                    <input type="number" id="price" step="any" required>
+                </div>
+                <div>
+                    <label for="order-type">Order Type:</label>
+                    <select id="order-type">
+                        <option value="limit">Limit</option>
+                        <option value="market">Market</option>
+                    </select>
+                </div>
+                <br>
+                <button type="submit">Place Order</button>
+            </form>
+            <div id="order-message"></div>
+
+            <hr>
+
+            <h3>Open Orders</h3>
+            <table id="open-orders-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Side</th>
+                        <th>Size</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Open orders will be dynamically inserted here -->
+                </tbody>
+            </table>
+
+            <hr>
+
+            <h3>Positions</h3>
+            <table id="positions-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Size</th>
+                        <th>Entry Price</th>
+                        <th>P&L</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Positions will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </section>
     </main>
+
+    <script src="js/trading.js"></script>
 </body>
 </html>

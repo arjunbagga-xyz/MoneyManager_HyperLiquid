@@ -4,9 +4,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from ..main import app, get_db
+from ..main import app, get_db, get_hl_api
 from ..database import Base
 from ..config import settings
+from ..hyperliquid_api import HyperliquidAPI
+from unittest.mock import MagicMock
 import os
 
 # Use an in-memory SQLite database for testing
@@ -147,3 +149,39 @@ def test_create_and_read_bot(authenticated_client):
     assert isinstance(read_data, list)
     assert len(read_data) == 1
     assert read_data[0]["name"] == "test_bot"
+
+
+def test_place_order(authenticated_client, db_session):
+    # Mock the HyperliquidAPI
+    mock_hl_api = MagicMock(spec=HyperliquidAPI)
+    mock_hl_api.info = MagicMock()
+    mock_hl_api.info.base_url = "https://api.hyperliquid-testnet.xyz"
+    def get_mock_hl_api():
+        return mock_hl_api
+    app.dependency_overrides[get_hl_api] = get_mock_hl_api
+
+    # Create a wallet to place an order with
+    wallet_response = authenticated_client.post(
+        "/wallets/",
+        json={"name": "trading_wallet", "address": "trading_address", "private_key": "0x4929aa0dad4277f6a1a0a7f940d2ace1a503a5fcc90ac9d092c9c9a5939331cf"},
+    )
+    wallet_id = wallet_response.json()["id"]
+
+    # Place an order
+    order_response = authenticated_client.post(
+        f"/wallets/{wallet_id}/order",
+        json={
+            "symbol": "BTC",
+            "is_buy": True,
+            "sz": 0.1,
+            "limit_px": 50000,
+            "order_type": {"limit": {"tif": "Gtc"}},
+        },
+    )
+    assert order_response.status_code == 200, order_response.text
+
+    # Verify that the place_order method was called
+    mock_hl_api.place_order.assert_called_once()
+
+    # Reset the dependency override
+    app.dependency_overrides = {}

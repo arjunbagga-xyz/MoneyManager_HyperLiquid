@@ -27,6 +27,13 @@ def get_wallets(db: Session, user_id: int, skip: int = 0, limit: int = 100):
     return wallets
 
 
+def get_wallet(db: Session, wallet_id: int, user_id: int):
+    wallet = db.query(models.Wallet).filter(models.Wallet.id == wallet_id, models.Wallet.owner_id == user_id).first()
+    if wallet:
+        wallet.private_key = f.decrypt(wallet.private_key.encode()).decode()
+    return wallet
+
+
 def create_wallet(db: Session, wallet: schemas.WalletCreate, user_id: int):
     encrypted_private_key = f.encrypt(wallet.private_key.encode()).decode()
     db_wallet = models.Wallet(

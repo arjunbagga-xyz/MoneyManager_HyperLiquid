@@ -6,6 +6,8 @@ from . import crud, models, schemas, security
 from .database import SessionLocal, engine
 from .config import settings
 from .hyperliquid_api import HyperliquidAPI
+from hyperliquid.exchange import Exchange
+from eth_account import Account
 
 app = FastAPI()
 
@@ -25,6 +27,7 @@ def get_db():
         db.close()
 
 def get_hl_api():
+    # This will be used for endpoints that don't require a private key
     return HyperliquidAPI()
 
 
@@ -99,12 +102,9 @@ def get_hyperliquid_meta(hl_api: HyperliquidAPI = Depends(get_hl_api)):
 def get_wallet_balance(wallet_address: str, hl_api: HyperliquidAPI = Depends(get_hl_api)):
     try:
         user_state = hl_api.get_user_state(wallet_address)
-        # The user_state contains a 'marginSummary' dict with the 'accountValue'.
         balance = user_state.get("marginSummary", {}).get("accountValue", "0")
         return {"balance": balance}
     except Exception as e:
-        # If the address is not found on Hyperliquid, the API might error.
-        # We'll return a zero balance in that case.
         return {"balance": "0"}
 
 
@@ -121,6 +121,50 @@ def read_bots(
 ):
     bots = crud.get_bots(db, user_id=current_user.id, skip=skip, limit=limit)
     return bots
+
+
+@app.post("/wallets/{wallet_id}/order")
+def place_order(
+    wallet_id: int, order: schemas.OrderRequest, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user), hl_api: HyperliquidAPI = Depends(get_hl_api)
+):
+    wallet = crud.get_wallet(db, wallet_id=wallet_id, user_id=current_user.id)
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+
+    # Re-initialize the exchange with the correct private key
+    hl_api.exchange = Exchange(Account.from_key(wallet.private_key), hl_api.info.base_url)
+    return hl_api.place_order(
+        symbol=order.symbol,
+        is_buy=order.is_buy,
+        sz=order.sz,
+        limit_px=order.limit_px,
+        order_type=order.order_type,
+    )
+
+@app.get("/wallets/{wallet_id}/open-orders")
+def get_open_orders(
+    wallet_id: int, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user), hl_api: HyperliquidAPI = Depends(get_hl_api)
+):
+    wallet = crud.get_wallet(db, wallet_id=wallet_id, user_id=current_user.id)
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+
+    # Re-initialize the exchange with the correct private key
+    hl_api.exchange = Exchange(Account.from_key(wallet.private_key), hl_api.info.base_url)
+    return hl_api.get_open_orders(user_address=wallet.address)
+
+
+@app.get("/wallets/{wallet_id}/positions")
+def get_positions(
+    wallet_id: int, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user), hl_api: HyperliquidAPI = Depends(get_hl_api)
+):
+    wallet = crud.get_wallet(db, wallet_id=wallet_id, user_id=current_user.id)
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+
+    # Re-initialize the exchange with the correct private key
+    hl_api.exchange = Exchange(Account.from_key(wallet.private_key), hl_api.info.base_url)
+    return hl_api.get_positions(user_address=wallet.address)
 
 
 @app.get("/")

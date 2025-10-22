@@ -34,6 +34,13 @@ class Wallet(WalletBase):
     class Config:
         from_attributes = True
 
+class OrderRequest(BaseModel):
+    symbol: str
+    is_buy: bool
+    sz: float
+    limit_px: float
+    order_type: dict
+
 
 class WalletWithKey(Wallet):
     private_key: str
