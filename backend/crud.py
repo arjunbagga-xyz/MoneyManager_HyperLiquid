@@ -40,3 +40,15 @@ def create_wallet(db: Session, wallet: schemas.WalletCreate, user_id: int):
     db.refresh(db_wallet)
     db_wallet.private_key = wallet.private_key
     return db_wallet
+
+
+def get_bots(db: Session, user_id: int, skip: int = 0, limit: int = 100):
+    return db.query(models.Bot).filter(models.Bot.owner_id == user_id).offset(skip).limit(limit).all()
+
+
+def create_bot(db: Session, bot: schemas.BotCreate, user_id: int):
+    db_bot = models.Bot(**bot.dict(), owner_id=user_id)
+    db.add(db_bot)
+    db.commit()
+    db.refresh(db_bot)
+    return db_bot

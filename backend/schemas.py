@@ -37,3 +37,19 @@ class Wallet(WalletBase):
 
 class WalletWithKey(Wallet):
     private_key: str
+
+
+class BotBase(BaseModel):
+    name: str
+    code: str
+    input_schema: Optional[dict] = None
+
+class BotCreate(BotBase):
+    pass
+
+class Bot(BotBase):
+    id: int
+    owner_id: int
+
+    class Config:
+        from_attributes = True

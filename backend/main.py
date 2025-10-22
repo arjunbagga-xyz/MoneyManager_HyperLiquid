@@ -95,6 +95,34 @@ def get_hyperliquid_meta(hl_api: HyperliquidAPI = Depends(get_hl_api)):
     return hl_api.get_meta()
 
 
+@app.get("/wallets/{wallet_address}/balance")
+def get_wallet_balance(wallet_address: str, hl_api: HyperliquidAPI = Depends(get_hl_api)):
+    try:
+        user_state = hl_api.get_user_state(wallet_address)
+        # The user_state contains a 'marginSummary' dict with the 'accountValue'.
+        balance = user_state.get("marginSummary", {}).get("accountValue", "0")
+        return {"balance": balance}
+    except Exception as e:
+        # If the address is not found on Hyperliquid, the API might error.
+        # We'll return a zero balance in that case.
+        return {"balance": "0"}
+
+
+@app.post("/bots/", response_model=schemas.Bot)
+def create_bot(
+    bot: schemas.BotCreate, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)
+):
+    return crud.create_bot(db=db, bot=bot, user_id=current_user.id)
+
+
+@app.get("/bots/", response_model=list[schemas.Bot])
+def read_bots(
+    skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)
+):
+    bots = crud.get_bots(db, user_id=current_user.id, skip=skip, limit=limit)
+    return bots
+
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}

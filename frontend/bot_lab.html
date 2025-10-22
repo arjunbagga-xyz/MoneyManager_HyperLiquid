@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trading Platform - Bot Lab</title>
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        #bot-code, #bot-schema {
+            width: 100%;
+            height: 200px;
+            font-family: monospace;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -23,7 +30,39 @@
 
     <main>
         <h2>Bot Lab</h2>
-        <!-- Bot creation and management interface will go here -->
+        <section id="bot-creation">
+            <h3>Create a New Bot</h3>
+            <form id="create-bot-form">
+                <div>
+                    <label for="bot-name">Bot Name:</label>
+                    <input type="text" id="bot-name" required>
+                </div>
+                <br>
+                <div>
+                    <label for="bot-code">Python Code:</label>
+                    <textarea id="bot-code" required></textarea>
+                </div>
+                <br>
+                <div>
+                    <label for="bot-schema">Input Schema (JSON):</label>
+                    <textarea id="bot-schema"></textarea>
+                </div>
+                <br>
+                <button type="submit">Save Bot</button>
+            </form>
+            <div id="bot-message"></div>
+        </section>
+
+        <hr>
+
+        <section id="bot-list-section">
+            <h3>Saved Bots</h3>
+            <div id="bot-list">
+                <!-- Saved bots will be dynamically inserted here -->
+            </div>
+        </section>
     </main>
+
+    <script src="js/bot_lab.js"></script>
 </body>
 </html>

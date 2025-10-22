@@ -122,3 +122,28 @@ def test_create_and_read_wallet(authenticated_client):
     assert read_data[0]["name"] == "test_wallet"
     # The private key should be decrypted and returned
     assert "private_key" not in read_data[0] # private_key is not in the Wallet schema for reading
+
+
+def test_create_and_read_bot(authenticated_client):
+    # Create a bot
+    create_response = authenticated_client.post(
+        "/bots/",
+        json={
+            "name": "test_bot",
+            "code": "print('hello')",
+            "input_schema": {"test": "test"}
+        },
+    )
+    assert create_response.status_code == 200, create_response.text
+    create_data = create_response.json()
+    assert create_data["name"] == "test_bot"
+    assert create_data["code"] == "print('hello')"
+    assert "id" in create_data
+
+    # Read the bots and verify the created bot is present
+    read_response = authenticated_client.get("/bots/")
+    assert read_response.status_code == 200, read_response.text
+    read_data = read_response.json()
+    assert isinstance(read_data, list)
+    assert len(read_data) == 1
+    assert read_data[0]["name"] == "test_bot"
