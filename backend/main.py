@@ -5,6 +5,7 @@ from jose import JWTError, jwt
 from . import crud, models, schemas, security
 from .database import SessionLocal, engine
 from .config import settings
+from .hyperliquid_api import HyperliquidAPI
 
 app = FastAPI()
 
@@ -22,6 +23,9 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def get_hl_api():
+    return HyperliquidAPI()
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
@@ -85,6 +89,11 @@ def read_wallets(
 ):
     wallets = crud.get_wallets(db, user_id=current_user.id, skip=skip, limit=limit)
     return wallets
+
+@app.get("/hyperliquid/meta")
+def get_hyperliquid_meta(hl_api: HyperliquidAPI = Depends(get_hl_api)):
+    return hl_api.get_meta()
+
 
 @app.get("/")
 def read_root():
