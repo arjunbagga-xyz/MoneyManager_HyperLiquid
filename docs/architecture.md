@@ -6,24 +6,20 @@ This document provides a detailed overview of the trading platform's architectur
 
 The platform follows a classic client-server architecture, composed of three main parts:
 
-1.  **Frontend:** A web-based user interface built with standard HTML, CSS, and JavaScript. This ensures broad compatibility across devices, including desktops and mobile phones.
-2.  **Backend:** A powerful Python application built with the FastAPI framework. It serves as the core of the system, handling all business logic, user authentication, and communication with the exchange.
+1.  **Frontend:** A web-based user interface built with standard HTML, CSS, and JavaScript.
+2.  **Backend:** A Python application built with the FastAPI framework. It serves as the core of the system, handling all business logic, user authentication, and communication with the exchange.
 3.  **Database:** A PostgreSQL database that provides persistent storage for all application data, including user accounts, wallets, bots, and trade history.
-
-![High-Level Architecture Diagram](httpst://i.imgur.com/example.png)  <!-- Placeholder for a diagram -->
-
----
 
 ## Component Breakdown
 
 ### Frontend
 
-The frontend is intentionally kept simple to ensure fast load times and ease of maintenance.
+The frontend is a simple, single-page application that provides a user-friendly interface for interacting with the platform's features.
 
 -   **Technologies:** HTML5, CSS3, JavaScript (ES6+).
 -   **Responsibilities:**
-    -   Displaying data fetched from the backend (e.g., wallet balances, open trades).
-    -   Providing a user-friendly interface for interacting with the platform's features (e.g., creating bots, managing wallets).
+    -   Displaying data fetched from the backend.
+    -   Providing a user-friendly interface for interacting with the platform's features.
     -   Handling user input and sending requests to the backend API.
 
 ### Backend
@@ -55,15 +51,11 @@ The database is the system's source of truth, chosen for its reliability and fea
     -   Saving bot code and their configurations.
     -   Recording a history of all trades made, whether manually or by bots.
 
----
-
 ## Security Considerations
-
-Even as an internal tool, security is a priority.
 
 -   **Authentication:** User access is protected by a JWT-based authentication system. All sensitive API endpoints require a valid token.
 -   **Password Storage:** User passwords are not stored in plaintext. They are hashed using `bcrypt` before being saved to the database.
--   **Private Key Storage:** Wallet private keys are encrypted using the `cryptography` library before being stored in the database, providing a critical layer of security.
+-   **Private Key Storage:** Wallet private keys are encrypted using the `cryptography` library before being stored in the database.
 -   **Configuration:** Sensitive information like database credentials and secret keys are managed through environment variables and are not hardcoded in the source.
 
 ## Bot Execution Engine
@@ -71,9 +63,17 @@ Even as an internal tool, security is a priority.
 The bot execution engine is a core component of the platform, designed to run custom user-provided Python code in a secure and managed way.
 
 -   **Process Isolation:** Each bot is run in its own separate process using Python's `multiprocessing` library. This ensures that a crash or error in one bot will not affect the main application or any other running bots.
--   **Dynamic Execution:** The `exec` function is used to execute the bot's code. A global context is provided to the bot, which includes its runtime inputs and the private key for the selected wallet. In the future, this context can be expanded to include pre-configured API clients, logging functions, and other utilities.
--   **State Management:** A `BotRunner` singleton is used to keep track of all active bot processes, allowing them to be started and stopped via the API.
+-   **Capital Management:** A `CapitalManager` class tracks the bot's available capital and positions to enforce capital allocation limits.
+-   **Real-time Updates:** A `WebSocketListener` runs in a separate thread for each bot, listening for fill events from the Hyperliquid exchange. This allows the `CapitalManager` to maintain an accurate, real-time view of the bot's capital and positions.
+-   **Trading API:** A `BotTradingAPI` wrapper is provided to the bot's execution context. This API enforces the capital allocation limit by checking the value of proposed orders against the bot's available capital before placing them.
+
+## Staking and Vaults
+
+The platform integrates with Hyperliquid's staking and vaults features.
+
+-   **Staking:** Users can delegate their funds to validators to earn rewards. The backend provides endpoints for getting a list of validators, delegating funds, and undelegating funds.
+-   **Vaults:** Users can deposit funds into vaults to earn a return. The backend provides endpoints for getting vault metadata and depositing funds. The withdrawal functionality is not yet implemented.
 
 ## Future Extensibility
 
-The architecture is designed with future growth in mind. The exchange integration logic is encapsulated within a dedicated module, which will make it easier to add support for other exchanges in the future without requiring a major overhaul of the system.
+The architecture is designed with future growth in mind. The exchange integration logic is encapsulated within a dedicated `HyperliquidAPI` class, which can be swapped out with other exchange APIs in the future to support multiple exchanges.

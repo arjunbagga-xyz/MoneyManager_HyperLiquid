@@ -1,190 +1,345 @@
 # API Documentation
 
-This document provides detailed information about the backend API endpoints.
+This document provides a detailed overview of the API endpoints available in the trading platform.
 
-## Base URL
+## Users
 
-The base URL for the API is `http://127.0.0.1:8000`.
+### POST /token
 
-## Authentication
+-   **Description:** Authenticates a user and returns a JWT access token.
+-   **Request Body:** `application/x-www-form-urlencoded`
+    -   `username`: The user's username.
+    -   `password`: The user's password.
+-   **Response:**
+    ```json
+    {
+      "access_token": "your_access_token",
+      "token_type": "bearer"
+    }
+    ```
 
-All endpoints (except for `/users/` and `/token`) require a valid JWT to be included in the `Authorization` header of the request:
+### POST /
 
-```
-Authorization: Bearer <your-jwt-token>
-```
+-   **Description:** Creates a new user.
+-   **Request Body:**
+    ```json
+    {
+      "username": "your_username",
+      "password": "your_password"
+    }
+    ```
+-   **Response:**
+    ```json
+    {
+      "id": 1,
+      "username": "your_username"
+    }
+    ```
 
----
+### GET /me/
 
-## User Authentication
+-   **Description:** Returns the currently authenticated user.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Response:**
+    ```json
+    {
+      "id": 1,
+      "username": "your_username"
+    }
+    ```
 
-### `POST /users/`
+## Wallets
 
-Creates a new user account.
+### POST /
 
-**Request Body:**
+-   **Description:** Creates a new wallet for the currently authenticated user.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Request Body:**
+    ```json
+    {
+      "name": "My Wallet",
+      "private_key": "your_private_key"
+    }
+    ```
+-   **Response:**
+    ```json
+    {
+      "id": 1,
+      "name": "My Wallet",
+      "address": "the_wallet_address"
+    }
+    ```
 
-```json
-{
-  "username": "string",
-  "password": "string"
-}
-```
+### GET /
 
-**Response:**
+-   **Description:** Returns a list of wallets for the currently authenticated user.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Response:**
+    ```json
+    [
+      {
+        "id": 1,
+        "name": "My Wallet",
+        "address": "the_wallet_address"
+      }
+    ]
+    ```
 
-```json
-{
-  "id": 0,
-  "username": "string"
-}
-```
+### GET /{wallet_address}/balance
 
-### `POST /token`
+-   **Description:** Returns the balance of a given wallet.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Response:**
+    ```json
+    {
+      "balance": "1234.56"
+    }
+    ```
 
-Authenticates a user and returns a JWT.
+### GET /{wallet_id}/open-orders
 
-**Request Body (Form Data):**
+-   **Description:** Returns a list of open orders for a given wallet.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Response:**
+    ```json
+    [
+      {
+        "order_id": 123,
+        "symbol": "BTC",
+        "side": "buy",
+        "price": 50000,
+        "quantity": 0.1
+      }
+    ]
+    ```
 
--   `username`: The user's username.
--   `password`: The user's password.
+### GET /{wallet_id}/positions
 
-**Response:**
+-   **Description:** Returns a list of open positions for a given wallet.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Response:**
+    ```json
+    [
+      {
+        "symbol": "BTC",
+        "side": "long",
+        "entry_price": 48000,
+        "quantity": 0.1
+      }
+    ]
+    ```
 
-```json
-{
-  "access_token": "string",
-  "token_type": "bearer"
-}
-```
+## Trades
 
-### `GET /users/me/`
+### POST /
 
-Returns the details of the currently authenticated user.
+-   **Description:** Places a new trade.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Request Body:**
+    ```json
+    {
+      "wallet_id": 1,
+      "symbol": "BTC",
+      "is_buy": true,
+      "sz": 0.1,
+      "limit_px": 50000,
+      "order_type": {
+        "limit": {
+          "tif": "Gtc"
+        }
+      }
+    }
+    ```
+-   **Response:**
+    ```json
+    {
+      "status": "ok",
+      "response": {
+        "type": "order",
+        "data": {
+          "statuses": [
+            {
+              "resting": {
+                "oid": 1234567890
+              }
+            }
+          ]
+        }
+      }
+    }
+    ```
 
-**Response:**
+## Bots
 
-```json
-{
-  "id": 0,
-  "username": "string"
-}
-```
+### POST /
 
----
+-   **Description:** Creates a new bot.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Request Body:**
+    ```json
+    {
+      "name": "My Bot",
+      "code": "print('Hello, World!')",
+      "input_schema": {
+        "param1": "value1"
+      }
+    }
+    ```
+-   **Response:**
+    ```json
+    {
+      "id": 1,
+      "name": "My Bot",
+      "code": "print('Hello, World!')",
+      "input_schema": {
+        "param1": "value1"
+      }
+    }
+    ```
 
-## Wallet Management
+### GET /
 
-### `POST /wallets/`
+-   **Description:** Returns a list of bots for the currently authenticated user.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Response:**
+    ```json
+    [
+      {
+        "id": 1,
+        "name": "My Bot",
+        "code": "print('Hello, World!')",
+        "input_schema": {
+          "param1": "value1"
+        }
+      }
+    ]
+    ```
 
-Adds a new wallet for the authenticated user.
+### POST /{bot_id}/run
 
-**Request Body:**
+-   **Description:** Runs a bot.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Request Body:**
+    ```json
+    {
+      "wallet_id": 1,
+      "capital_allocation": 1000.0,
+      "runtime_inputs": {
+        "param1": "value1"
+      }
+    }
+    ```
+-   **Response:**
+    ```json
+    {
+      "status": "success",
+      "message": "Bot 1 started with PID 12345"
+    }
+    ```
 
-```json
-{
-  "name": "string",
-  "address": "string",
-  "private_key": "string"
-}
-```
+### POST /{bot_id}/stop
 
-**Response:**
+-   **Description:** Stops a bot.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Response:**
+    ```json
+    {
+      "status": "success",
+      "message": "Bot 1 stopped"
+    }
+    ```
 
-```json
-{
-  "id": 0,
-  "name": "string",
-  "address": "string",
-  "owner_id": 0
-}
-```
+### GET /{bot_id}/logs
 
-### `GET /wallets/`
+-   **Description:** Returns the logs for a bot.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Response:**
+    ```
+    Hello, World!
+    ```
 
-Returns a list of all wallets for the authenticated user.
+## Staking
 
-**Response:**
+### GET /validators
 
-A list of wallet objects, as shown below:
+-   **Description:** Returns a list of available validators.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Response:**
+    ```json
+    [
+      {
+        "address": "0x123...",
+        "name": "Validator 1"
+      }
+    ]
+    ```
 
-```json
-[
-  {
-    "id": 0,
-    "name": "string",
-    "address": "string",
-    "owner_id": 0
-  }
-]
-```
+### POST /delegate
 
----
+-   **Description:** Delegates funds to a validator.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Request Body:**
+    ```json
+    {
+      "wallet_id": 1,
+      "validator_address": "0x123...",
+      "amount": 100.0
+    }
+    ```
+-   **Response:**
+    ```json
+    {
+      "status": "ok"
+    }
+    ```
 
-## Bot Management
+### POST /undelegate
 
-### `POST /bots/{bot_id}/run`
-
-Starts a new process for the specified bot.
-
-**Request Body:**
-
-```json
-{
-  "wallet_id": 0,
-  "capital_allocation": 0.0,
-  "runtime_inputs": {}
-}
-```
-
-**Response:**
-
-```json
-{
-  "status": "success",
-  "message": "Bot <bot_id> started with PID <process_id>"
-}
-```
-
-### `POST /bots/{bot_id}/stop`
-
-Stops a running bot process.
-
-**Response:**
-
-```json
-{
-  "status": "success",
-  "message": "Bot <bot_id> stopped"
-}
-```
-
----
+-   **Description:** Undelegates funds from a validator.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Request Body:**
+    ```json
+    {
+      "wallet_id": 1,
+      "validator_address": "0x123...",
+      "amount": 100.0
+    }
+    ```
+-   **Response:**
+    ```json
+    {
+      "status": "ok"
+    }
+    ```
 
 ## Vaults
 
-### `GET /vaults/meta`
+### GET /meta
 
-Retrieves metadata for all available vaults.
+-   **Description:** Returns metadata about the available vaults.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Response:**
+    ```json
+    {
+      "universe": []
+    }
+    ```
 
-**Response:**
+### POST /deposit
 
-A list of vault metadata objects.
-
-### `POST /vaults/deposit`
-
-Deposits USDC into a vault from a managed wallet.
-
-**Request Body:**
-
-```json
-{
-  "wallet_id": 0,
-  "vault_address": "string",
-  "amount": 0
-}
-```
-
-**Response:**
-
-A confirmation of the vault transfer.
+-   **Description:** Deposits funds into a vault.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Request Body:**
+    ```json
+    {
+      "wallet_id": 1,
+      "vault_address": "0x456...",
+      "amount": 500.0
+    }
+    ```
+-   **Response:**
+    ```json
+    {
+      "status": "ok"
+    }
+    ```
