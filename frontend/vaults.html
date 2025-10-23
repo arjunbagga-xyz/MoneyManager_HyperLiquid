@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Platform - Vaults</title>
+    <title>Vaults - Trading Platform</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -15,52 +15,18 @@
                 <li><a href="trading.html">Trading</a></li>
                 <li><a href="vaults.html" class="active">Vaults</a></li>
                 <li><a href="staking.html">Staking</a></li>
-                <li><a href="bot_lab.html">Bot Lab</a></li>
+                <li><a href="bots.html">Bot Lab</a></li>
                 <li><a href="account.html">Account</a></li>
             </ul>
         </nav>
     </header>
-
     <main>
-        <h2>Vaults</h2>
-
-        <section id="vault-deposit">
-            <h3>Deposit to Vault</h3>
-            <form id="deposit-form">
-                <div>
-                    <label for="vault-selector">Select Vault:</label>
-                    <select id="vault-selector" required></select>
-                </div>
-                <div>
-                    <label for="wallet-selector">From Wallet:</label>
-                    <select id="wallet-selector" required></select>
-                </div>
-                <div>
-                    <label for="deposit-amount">Amount (USDC):</label>
-                    <input type="number" id="deposit-amount" step="any" required>
-                </div>
-                <br>
-                <button type="submit">Deposit</button>
-            </form>
-            <div id="deposit-message"></div>
+        <section id="vaults">
+            <h2>Vaults</h2>
+            <div id="vault-list"></div>
         </section>
-
-        <hr>
-
-        <h3>Available Vaults</h3>
-        <table id="vaults-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Vaults will be dynamically inserted here -->
-            </tbody>
-        </table>
     </main>
-
+    <script src="js/auth.js"></script>
     <script src="js/vaults.js"></script>
 </body>
 </html>

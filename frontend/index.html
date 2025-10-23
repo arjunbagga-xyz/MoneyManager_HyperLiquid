@@ -13,9 +13,9 @@
             <ul>
                 <li><a href="index.html" class="active">Dashboard</a></li>
                 <li><a href="trading.html">Trading</a></li>
+                <li><a href="bot_lab.html">Bot Lab</a></li>
                 <li><a href="vaults.html">Vaults</a></li>
                 <li><a href="staking.html">Staking</a></li>
-                <li><a href="bot_lab.html">Bot Lab</a></li>
                 <li><a href="account.html">Account</a></li>
             </ul>
         </nav>
@@ -29,8 +29,22 @@
                 <!-- Wallet information will be dynamically inserted here -->
             </div>
         </section>
+
+        <section id="open-orders">
+            <h3>Open Orders</h3>
+            <div id="order-list">
+                <!-- Open orders for the selected wallet will be displayed here -->
+            </div>
+        </section>
+
+        <section id="positions">
+            <h3>Positions</h3>
+            <div id="position-list">
+                <!-- Positions for the selected wallet will be displayed here -->
+            </div>
+        </section>
     </main>
 
-    <script src="js/main.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 </html>

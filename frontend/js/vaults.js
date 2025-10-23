@@ -1,108 +1,62 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const token = localStorage.getItem("jwt");
+document.addEventListener("DOMContentLoaded", function () {
+    const token = localStorage.getItem("token");
     if (!token) {
-        window.location.href = "account.html";
-        return;
+        window.location.href = "/account.html";
     }
 
-    const vaultsTable = document.getElementById("vaults-table").getElementsByTagName('tbody')[0];
-    const vaultSelector = document.getElementById("vault-selector");
-    const walletSelector = document.getElementById("wallet-selector");
-    const depositForm = document.getElementById("deposit-form");
-    const depositMessage = document.getElementById("deposit-message");
+    const vaultList = document.getElementById("vault-list");
 
-    let vaults = [];
-    let wallets = [];
-
-    async function initialize() {
-        await Promise.all([fetchVaults(), fetchWallets()]);
-        populateVaultSelector();
-        populateWalletSelector();
-        displayVaults();
-    }
-
-    async function fetchVaults() {
-        try {
-            const response = await fetch("http://localhost:8000/vaults/meta", {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            if (!response.ok) throw new Error("Failed to fetch vaults");
-            vaults = await response.json();
-        } catch (error) {
-            console.error("Error fetching vaults:", error);
+    // Fetch vaults
+    fetch("http://localhost:8000/vaults/meta", {
+        headers: {
+            "Authorization": `Bearer ${token}`
         }
-    }
-
-    async function fetchWallets() {
-        try {
-            const response = await fetch("http://localhost:8000/wallets/", {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            if (!response.ok) throw new Error("Failed to fetch wallets");
-            wallets = await response.json();
-        } catch (error) {
-            console.error("Error fetching wallets:", error);
-        }
-    }
-
-    function populateVaultSelector() {
-        vaultSelector.innerHTML = "";
-        vaults.forEach(vault => {
-            const option = document.createElement("option");
-            option.value = vault.vaultAddress;
-            option.textContent = vault.name;
-            vaultSelector.appendChild(option);
+    })
+    .then(response => response.json())
+    .then(data => {
+        data.forEach(vault => {
+            const vaultElement = document.createElement("div");
+            vaultElement.className = "vault";
+            vaultElement.innerHTML = `
+                <h3>${vault.name}</h3>
+                <p>Description: ${vault.description}</p>
+                <p>Address: ${vault.address}</p>
+                <button class="deposit-btn" data-vault-address="${vault.address}">Deposit</button>
+            `;
+            vaultList.appendChild(vaultElement);
         });
-    }
-
-    function populateWalletSelector() {
-        walletSelector.innerHTML = "";
-        wallets.forEach(wallet => {
-            const option = document.createElement("option");
-            option.value = wallet.id;
-            option.textContent = `${wallet.name} - ${wallet.address}`;
-            walletSelector.appendChild(option);
-        });
-    }
-
-    function displayVaults() {
-        vaultsTable.innerHTML = "";
-        vaults.forEach(vault => {
-            const row = vaultsTable.insertRow();
-            row.insertCell(0).textContent = vault.name;
-            row.insertCell(1).textContent = vault.description;
-        });
-    }
-
-    depositForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const wallet_id = parseInt(walletSelector.value);
-        const vault_address = vaultSelector.value;
-        const amount = parseInt(document.getElementById("deposit-amount").value);
-
-        try {
-            const response = await fetch("http://localhost:8000/vaults/deposit", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ wallet_id, vault_address, amount })
-            });
-
-            if (response.ok) {
-                depositMessage.textContent = "Deposit successful!";
-                depositMessage.style.color = "green";
-            } else {
-                const error = await response.json();
-                depositMessage.textContent = `Deposit failed: ${error.detail}`;
-                depositMessage.style.color = "red";
-            }
-        } catch (error) {
-            depositMessage.textContent = "An error occurred during the deposit.";
-            depositMessage.style.color = "red";
-        }
     });
 
-    initialize();
+    // Handle deposit
+    vaultList.addEventListener("click", function (event) {
+        if (event.target.className === "deposit-btn") {
+            const vaultAddress = event.target.dataset.vaultAddress;
+            const amount = prompt("Enter amount to deposit:");
+            if (amount) {
+                const walletId = prompt("Enter wallet ID to deposit from:");
+                if (walletId) {
+                    fetch("http://localhost:8000/vaults/deposit", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            vault_address: vaultAddress,
+                            amount: parseFloat(amount),
+                            wallet_id: parseInt(walletId)
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert("Deposit successful!");
+                    })
+                    .catch(error => {
+                        console.error("Error depositing into vault:", error);
+                        alert("Deposit failed.");
+                    });
+                }
+            }
+        }
+    });
 });

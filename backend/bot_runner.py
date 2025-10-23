@@ -30,7 +30,7 @@ class WebSocketListener:
     def __init__(self, user_address, capital_manager):
         self.user_address = user_address
         self.capital_manager = capital_manager
-        self.ws_url = constants.MAINNET_WSS_URL
+        self.ws_url = "ws" + constants.MAINNET_API_URL[len("http"):] + "/ws"
 
     async def listen(self):
         async with websockets.connect(self.ws_url) as ws:

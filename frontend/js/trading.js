@@ -114,13 +114,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            const response = await fetch(`http://localhost:8000/wallets/${walletId}/order`, {
+            const response = await fetch(`http://localhost:8000/trades/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify({ symbol, is_buy, sz, limit_px, order_type })
+                body: JSON.stringify({ wallet_id: parseInt(walletId), symbol, is_buy, sz, limit_px, order_type })
             });
 
             if (response.ok) {

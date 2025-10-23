@@ -41,3 +41,12 @@ class HyperliquidAPI(ExchangeInterface):
     def get_positions(self, user_address: str):
         user_state = self.info.user_state(user_address)
         return user_state.get("assetPositions", [])
+
+    def get_validators(self):
+        return self.info.validators()
+
+    def delegate_to_validator(self, validator_address: str, amount: float):
+        return self.exchange.delegate(validator_address, amount)
+
+    def undelegate_from_validator(self, validator_address: str, amount: float):
+        return self.exchange.undelegate(validator_address, amount)

@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 from backend.app import create_app
 from backend.database import Base, get_db
 from backend.hyperliquid_api import HyperliquidAPI
+from backend.bot_runner import BotRunner
 
 # Use an in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -49,7 +50,7 @@ def test_create_user(client: TestClient):
 def test_login_for_access_token(client: TestClient):
     client.post("/users/", json={"username": "testuser", "password": "testpassword"})
     response = client.post(
-        "/token",
+        "/users/token",
         data={"username": "testuser", "password": "testpassword"},
     )
     assert response.status_code == 200, response.text
@@ -60,7 +61,7 @@ def test_login_for_access_token(client: TestClient):
 def authenticated_client(client: TestClient) -> TestClient:
     client.post("/users/", json={"username": "testuser", "password": "testpassword"})
     response = client.post(
-        "/token",
+        "/users/token",
         data={"username": "testuser", "password": "testpassword"},
     )
     token = response.json()["access_token"]
@@ -115,30 +116,33 @@ def test_create_and_read_bot(client: TestClient):
     assert len(read_data) == 1
     assert read_data[0]["name"] == "test_bot"
 
-@patch("backend.app.HyperliquidAPI")
-def test_place_order(mock_hl_api_class, client: TestClient):
-    auth_client = authenticated_client(client)
-    mock_hl_api_instance = mock_hl_api_class.return_value
-    wallet_response = auth_client.post(
-        "/wallets/",
-        json={"name": "trading_wallet", "address": "trading_address", "private_key": "0x4929aa0dad4277f6a1a0a7f940d2ace1a503a5fcc90ac9d092c9c9a5939331cf"},
-    )
-    wallet_id = wallet_response.json()["id"]
-    order_response = auth_client.post(
-        f"/wallets/{wallet_id}/order",
-        json={
-            "symbol": "BTC",
-            "is_buy": True,
-            "sz": 0.1,
-            "limit_px": 50000,
-            "order_type": {"limit": {"tif": "Gtc"}},
-        },
-    )
-    assert order_response.status_code == 200, order_response.text
-    assert mock_hl_api_instance.place_order.called
+def test_place_order(client: TestClient):
+    with patch("backend.routers.trades.HyperliquidAPI") as mock_hl_api_class:
+        auth_client = authenticated_client(client)
+        mock_hl_api_instance = mock_hl_api_class.return_value
+        wallet_response = auth_client.post(
+            "/wallets/",
+            json={"name": "trading_wallet", "address": "trading_address", "private_key": "0x4929aa0dad4277f6a1a0a7f940d2ace1a503a5fcc90ac9d092c9c9a5939331cf"},
+        )
+        wallet_id = wallet_response.json()["id"]
+        order_response = auth_client.post(
+            "/trades/",
+            json={
+                "wallet_id": wallet_id,
+                "symbol": "BTC",
+                "is_buy": True,
+                "sz": 0.1,
+                "limit_px": 50000,
+                "order_type": {"limit": {"tif": "Gtc"}},
+            },
+        )
+        assert order_response.status_code == 200, order_response.text
+        assert mock_hl_api_instance.place_order.called
 
-@patch("backend.app.bot_runner", new_callable=MagicMock)
-def test_run_bot(mock_bot_runner, client: TestClient):
+from backend.bot_runner import bot_runner
+
+@patch.object(bot_runner, "start_bot")
+def test_run_bot(mock_start_bot, client: TestClient):
     auth_client = authenticated_client(client)
     wallet_response = auth_client.post(
         "/wallets/",
@@ -159,7 +163,7 @@ def test_run_bot(mock_bot_runner, client: TestClient):
         },
     )
     assert run_response.status_code == 200, run_response.text
-    mock_bot_runner.start_bot.assert_called_once()
+    mock_start_bot.assert_called_once()
 
 @patch.object(HyperliquidAPI, "get_vault_meta", return_value=[{"name": "Test Vault"}])
 def test_get_vault_meta(mock_get_vault_meta, client: TestClient):
@@ -167,3 +171,10 @@ def test_get_vault_meta(mock_get_vault_meta, client: TestClient):
     response = auth_client.get("/vaults/meta")
     assert response.status_code == 200
     assert response.json() == [{"name": "Test Vault"}]
+
+@patch.object(HyperliquidAPI, "get_validators", return_value=[{"name": "Test Validator"}])
+def test_get_validators(mock_get_validators, client: TestClient):
+    auth_client = authenticated_client(client)
+    response = auth_client.get("/staking/validators")
+    assert response.status_code == 200
+    assert response.json() == [{"name": "Test Validator"}]

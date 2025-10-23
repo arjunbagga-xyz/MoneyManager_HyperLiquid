@@ -35,6 +35,7 @@ class Wallet(WalletBase):
         from_attributes = True
 
 class OrderRequest(BaseModel):
+    wallet_id: int
     symbol: str
     is_buy: bool
     sz: float
@@ -52,6 +53,16 @@ class VaultDepositRequest(BaseModel):
     wallet_id: int
     vault_address: str
     amount: int
+
+class DelegateRequest(BaseModel):
+    wallet_id: int
+    validator_address: str
+    amount: float
+
+class UndelegateRequest(BaseModel):
+    wallet_id: int
+    validator_address: str
+    amount: float
 
 
 class WalletWithKey(Wallet):
