@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trading Platform - Trading</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
     <header>
@@ -38,6 +39,8 @@
             </div>
 
             <hr>
+
+            <div id="price-chart" style="height: 400px; margin-bottom: 20px;"></div>
 
             <h3>Place an Order</h3>
             <form id="order-form">
@@ -95,6 +98,7 @@
                         <th>Side</th>
                         <th>Size</th>
                         <th>Price</th>
+                        <th>Type</th>
                         <th>Action</th>
                     </tr>
                 </thead>

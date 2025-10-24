@@ -114,6 +114,7 @@ function displayWallets(wallets, token) {
             fetchWalletState(selectedWalletId, token);
             fetchOrderHistory(selectedWalletId, token);
             fetchTradeHistory(selectedWalletId, token);
+            fetchPortfolioHistory(selectedWalletId, token);
             initializeWebSocket(walletAddress, token);
         });
         ul.appendChild(li);
@@ -130,6 +131,7 @@ async function fetchWalletState(walletId, token) {
             const data = await response.json();
             displayOrders(data.open_orders);
             displayPositions(data.positions);
+            displaySpotBalances(data.spot_balances);
         } else {
             throw new Error("Failed to fetch wallet state");
         }
@@ -388,4 +390,126 @@ function displayTradeHistory(trades) {
     });
 
     tradeHistoryList.appendChild(table);
+}
+
+async function fetchPortfolioHistory(walletId, token) {
+    const endTime = Math.floor(Date.now() / 1000);
+    const startTime = endTime - (30 * 24 * 60 * 60); // 30 days ago
+    try {
+        const response = await fetch(`http://localhost:8000/wallets/${walletId}/portfolio-history?start_time=${startTime}&end_time=${endTime}`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            renderPortfolioChart(data);
+        } else {
+            throw new Error("Failed to fetch portfolio history");
+        }
+    } catch (error) {
+        console.error("Error fetching portfolio history:", error);
+    }
+}
+
+function renderPortfolioChart(history) {
+    const chartContainer = document.getElementById('portfolio-chart');
+    chartContainer.innerHTML = ''; // Clear previous chart
+    const chart = LightweightCharts.createChart(chartContainer, {
+        width: chartContainer.clientWidth,
+        height: chartContainer.clientHeight,
+    });
+
+    const lineSeries = chart.addLineSeries();
+
+    const formattedData = history.map(item => ({
+        time: item.time,
+        value: parseFloat(item.value),
+    })).sort((a, b) => a.time - b.time);
+
+    lineSeries.setData(formattedData);
+    chart.timeScale().fitContent();
+}
+
+function displaySpotBalances(balances) {
+    const spotBalancesList = document.getElementById("spot-balances-list");
+    spotBalancesList.innerHTML = "";
+    if (balances.length === 0) {
+        spotBalancesList.innerHTML = "<p>No spot balances.</p>";
+        return;
+    }
+
+    const table = document.createElement("table");
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Asset</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    `;
+    const tbody = table.querySelector("tbody");
+
+    balances.forEach(balance => {
+        const row = tbody.insertRow();
+        row.insertCell(0).textContent = balance.coin;
+        row.insertCell(1).textContent = balance.total;
+    });
+
+    spotBalancesList.appendChild(table);
+}
+
+const fundingRateForm = document.getElementById("funding-rate-form");
+fundingRateForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const symbol = document.getElementById("funding-symbol").value;
+    fetchFundingRateHistory(symbol, localStorage.getItem("jwt"));
+});
+
+async function fetchFundingRateHistory(symbol, token) {
+    const endTime = Math.floor(Date.now() / 1000);
+    const startTime = endTime - (30 * 24 * 60 * 60); // 30 days ago
+    try {
+        const response = await fetch(`http://localhost:8000/market/funding-history?symbol=${symbol}&start_time=${startTime}&end_time=${endTime}`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            displayFundingRateHistory(data);
+        } else {
+            throw new Error("Failed to fetch funding rate history");
+        }
+    } catch (error) {
+        console.error("Error fetching funding rate history:", error);
+    }
+}
+
+function displayFundingRateHistory(history) {
+    const fundingRateHistoryList = document.getElementById("funding-rate-history-list");
+    fundingRateHistoryList.innerHTML = "";
+    if (history.length === 0) {
+        fundingRateHistoryList.innerHTML = "<p>No funding rate history.</p>";
+        return;
+    }
+
+    const table = document.createElement("table");
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Funding Rate</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    `;
+    const tbody = table.querySelector("tbody");
+
+    history.forEach(item => {
+        const row = tbody.insertRow();
+        row.insertCell(0).textContent = new Date(item.time).toLocaleString();
+        row.insertCell(1).textContent = item.fundingRate;
+    });
+
+    fundingRateHistoryList.appendChild(table);
 }

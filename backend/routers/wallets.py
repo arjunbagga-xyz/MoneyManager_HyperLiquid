@@ -70,8 +70,9 @@ def get_wallet_state(
     hl_api = HyperliquidAPI(private_key=wallet.private_key)
     open_orders = hl_api.get_open_orders(user_address=wallet.address)
     positions = hl_api.get_positions(user_address=wallet.address)
+    spot_balances = hl_api.get_spot_balances(user_address=wallet.address)
 
-    return {"open_orders": open_orders, "positions": positions}
+    return {"open_orders": open_orders, "positions": positions, "spot_balances": spot_balances}
 
 @router.get("/{wallet_id}/order-history")
 def get_order_history(
@@ -94,3 +95,14 @@ def get_trade_history(
 
     hl_api = HyperliquidAPI(private_key=wallet.private_key)
     return hl_api.get_user_fills(user_address=wallet.address)
+
+@router.get("/{wallet_id}/portfolio-history")
+def get_portfolio_history(
+    wallet_id: int, start_time: int, end_time: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+):
+    wallet = crud.get_wallet(db, wallet_id=wallet_id, user_id=current_user.id)
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+
+    hl_api = HyperliquidAPI(private_key=wallet.private_key)
+    return hl_api.get_historical_portfolio_value(user_address=wallet.address, start_time=start_time, end_time=end_time)

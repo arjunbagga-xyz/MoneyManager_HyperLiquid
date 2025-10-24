@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const selectedWalletId = walletSelector.value;
             fetchAllTradingData(selectedWalletId);
         }
+        initializeChart();
     }
 
     async function fetchWallets() {
@@ -70,17 +71,21 @@ document.addEventListener("DOMContentLoaded", () => {
             row.insertCell(1).textContent = order.side;
             row.insertCell(2).textContent = order.sz;
             row.insertCell(3).textContent = order.limitPx;
+            row.insertCell(4).textContent = order.isSpot ? "Spot" : "Perpetual";
 
-            const modifyButton = document.createElement("button");
-            modifyButton.textContent = "Modify";
-            modifyButton.addEventListener("click", () => {
-                const newSize = prompt("Enter new size:", order.sz);
-                const newPrice = prompt("Enter new price:", order.limitPx);
-                if (newSize && newPrice) {
-                    modifyOrder(order.oid, order.coin, parseFloat(newSize), parseFloat(newPrice));
-                }
-            });
-            row.insertCell(4).appendChild(modifyButton);
+            const actionCell = row.insertCell(5);
+            if (!order.isSpot) {
+                const modifyButton = document.createElement("button");
+                modifyButton.textContent = "Modify";
+                modifyButton.addEventListener("click", () => {
+                    const newSize = prompt("Enter new size:", order.sz);
+                    const newPrice = prompt("Enter new price:", order.limitPx);
+                    if (newSize && newPrice) {
+                        modifyOrder(order.oid, order.coin, parseFloat(newSize), parseFloat(newPrice));
+                    }
+                });
+                actionCell.appendChild(modifyButton);
+            }
         });
     }
 
@@ -208,5 +213,75 @@ document.addEventListener("DOMContentLoaded", () => {
         fetchAllTradingData(selectedWalletId);
     });
 
+    let chart;
+    let candlestickSeries;
+
+    function initializeChart() {
+        const chartContainer = document.getElementById('price-chart');
+        chart = LightweightCharts.createChart(chartContainer, {
+            width: chartContainer.clientWidth,
+            height: chartContainer.clientHeight,
+            layout: {
+                backgroundColor: '#ffffff',
+                textColor: 'rgba(0, 0, 0, 0.9)',
+            },
+            grid: {
+                vertLines: {
+                    color: 'rgba(197, 203, 206, 0.5)',
+                },
+                horzLines: {
+                    color: 'rgba(197, 203, 206, 0.5)',
+                },
+            },
+            crosshair: {
+                mode: LightweightCharts.CrosshairMode.Normal,
+            },
+            rightPriceScale: {
+                borderColor: 'rgba(197, 203, 206, 0.8)',
+            },
+            timeScale: {
+                borderColor: 'rgba(197, 203, 206, 0.8)',
+            },
+        });
+        candlestickSeries = chart.addCandlestickSeries({
+            upColor: 'rgba(0, 150, 136, 1)',
+            downColor: 'rgba(255, 82, 82, 1)',
+            borderDownColor: 'rgba(255, 82, 82, 1)',
+            borderUpColor: 'rgba(0, 150, 136, 1)',
+            wickDownColor: 'rgba(255, 82, 82, 1)',
+            wickUpColor: 'rgba(0, 150, 136, 1)',
+        });
+    }
+
+    async function loadChartData(symbol) {
+        if (!symbol) return;
+        try {
+            const now = Math.floor(Date.now());
+            const startTime = now - (1000 * 60 * 60 * 24 * 30); // 30 days ago
+            const response = await fetch(`http://localhost:8000/market/candles?symbol=${symbol}&interval=1h&start_time=${startTime}&end_time=${now}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error("Failed to fetch chart data");
+            const data = await response.json();
+
+            const formattedData = data.map(d => ({
+                time: d.t / 1000,
+                open: parseFloat(d.o),
+                high: parseFloat(d.h),
+                low: parseFloat(d.l),
+                close: parseFloat(d.c),
+            }));
+
+            candlestickSeries.setData(formattedData);
+        } catch (error) {
+            console.error("Error fetching chart data:", error);
+        }
+    }
+
+    document.getElementById("symbol").addEventListener("change", (e) => {
+        loadChartData(e.target.value);
+    });
+
     initialize();
+    loadChartData(document.getElementById("symbol").value); // Initial load
 });

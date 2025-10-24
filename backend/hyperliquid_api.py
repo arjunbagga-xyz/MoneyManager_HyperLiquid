@@ -94,6 +94,9 @@ class HyperliquidAPI(ExchangeInterface):
     def get_user_fills(self, user_address: str):
         return self.info.user_fills(user_address)
 
+    def get_historical_portfolio_value(self, user_address: str, start_time: int, end_time: int):
+        return self.info.user_portfolio_history(user_address, start_time, end_time)
+
     def place_spot_order(self, symbol: str, is_buy: bool, sz: float, limit_px: float, order_type: dict):
         if not self.exchange:
             raise Exception("Exchange not initialized. Provide a private key.")
@@ -103,3 +106,9 @@ class HyperliquidAPI(ExchangeInterface):
     def get_spot_balances(self, user_address: str):
         user_state = self.info.user_state(user_address)
         return user_state.get("spotAssetPositions", [])
+
+    def get_funding_history(self, symbol: str, start_time: int, end_time: int):
+        return self.info.funding_history(symbol, start_time, end_time)
+
+    def get_candles(self, symbol: str, interval: str, start_time: int, end_time: int):
+        return self.info.candles_snapshot(symbol, interval, start_time, end_time)
