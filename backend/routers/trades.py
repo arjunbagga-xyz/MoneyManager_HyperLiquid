@@ -23,3 +23,34 @@ def place_order(
         limit_px=order.limit_px,
         order_type=order.order_type,
     )
+
+@router.delete("/cancel")
+def cancel_order(
+    cancel_request: schemas.CancelOrderRequest, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+):
+    wallet = crud.get_wallet(db, wallet_id=cancel_request.wallet_id, user_id=current_user.id)
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+
+    hl_api = HyperliquidAPI(private_key=wallet.private_key)
+    return hl_api.cancel_order(symbol=cancel_request.symbol, oid=cancel_request.oid)
+
+@router.delete("/cancel-all/{wallet_id}")
+def cancel_all_orders(
+    wallet_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+):
+    wallet = crud.get_wallet(db, wallet_id=wallet_id, user_id=current_user.id)
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+
+    hl_api = HyperliquidAPI(private_key=wallet.private_key)
+    open_orders = hl_api.get_open_orders(user_address=wallet.address)
+
+    if not open_orders:
+        return {"status": "success", "message": "No open orders to cancel."}
+
+    cancellations = [
+        {"coin": order["order"]["coin"], "oid": order["order"]["oid"]} for order in open_orders
+    ]
+
+    return hl_api.cancel_orders_batch(cancellations)

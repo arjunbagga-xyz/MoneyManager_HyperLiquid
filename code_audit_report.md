@@ -1,135 +1,138 @@
 # Code Audit Report
 
-This document details the findings of a comprehensive code audit of the Hyperliquid trading platform, cross-referencing the implementation with the official Hyperliquid documentation.
+## Introduction
 
-## 1. Staking
+This report provides a comprehensive audit of the trading platform, covering its frontend, backend, and overall architecture. The audit focuses on identifying incomplete features, ensuring compliance with the Hyperliquid API, and suggesting potential improvements and new features. The report is structured by the main pages/features of the application as they appear in the frontend.
 
-### 1.1. Implemented Features
+## Dashboard Page
 
--   `GET /validators`: Fetches the list of validators.
--   `POST /delegate`: Delegates HYPE to a validator.
--   `POST /undelegate`: Undelegates HYPE from a validator.
+The Dashboard is the main landing page for authenticated users. It provides an overview of their managed wallets, open orders, and current positions.
 
-### 1.2. Discrepancies and Missing Features
+### 1. Wallets
 
--   **Unstaking Queue:** The documentation specifies a 7-day unstaking queue when transferring HYPE from a staking account to a spot account. The current `/undelegate` endpoint appears to be a synchronous operation, which might be misleading for the user. The API should reflect the asynchronous nature of this process.
--   **Staking Rewards:** The documentation details how staking rewards are calculated, accrued, and distributed. There are no endpoints to check reward balances or history.
--   **Validator Status:** The documentation mentions that validators can be "jailed," which affects their ability to earn rewards. The `/validators` endpoint should ideally include the status of each validator.
--   **Account Abstraction:** The docs distinguish between "spot" and "staking" accounts. The current implementation does not make this distinction clear in its API.
+**Completeness:**
+- The current implementation allows users to add wallets by providing a name and private key.
+- It displays the wallet's address and balance.
+- This is a good start, but lacks many features available in the Hyperliquid UI and API.
 
-## 2. Vaults
+**API Compliance & Suggestions (SDK):**
+- **Missing Historical Data:** The Hyperliquid API provides endpoints to retrieve historical fills (`userFills`) and historical orders (`historicalOrders`). This data should be displayed on the dashboard to give users a complete picture of their trading activity.
+- **Portfolio Value:** The API (`portfolio` endpoint) can return historical portfolio values. This would be a great addition to the dashboard, allowing users to track their performance over time with a chart.
+- **Subaccounts:** The API supports the creation and management of subaccounts (`subAccounts` endpoint). This is a key feature of the Hyperliquid platform that is not currently implemented.
 
-### 2.1. Implemented Features
+**Suggestions (Big Picture):**
+- **Wallet Import/Export:** Allow users to import and export their wallet configurations for easier backup and migration.
+- **Multi-Wallet View:** Provide a consolidated view of all wallets, showing the total balance and a combined list of orders and positions.
 
--   `GET /meta`: Fetches metadata about vaults.
--   `POST /deposit`: Deposits funds into a vault.
+### 2. Open Orders
 
-### 2.2. Discrepancies and Missing Features
+**Completeness:**
+- The dashboard currently displays a list of open orders for a selected wallet.
+- This is a basic implementation that meets the minimum requirements.
 
--   **Withdraw Functionality:** The most critical missing feature is the ability to withdraw funds from a vault. This makes the entire vault feature non-functional from a user's perspective.
--   **Profit Sharing:** The documentation describes a 10% profit-sharing mechanism for vault owners. This is not implemented.
--   **Vault Types:** The documentation mentions "protocol vaults" which have no fees. The current API does not distinguish between different vault types.
--   **Vault Management:** There are no endpoints for vault owners to manage their vaults (e.g., set strategy, close vault).
--   **Performance History:** The docs mention that users should assess the performance history of a vault before depositing. There are no endpoints to retrieve this data.
+**API Compliance & Suggestions (SDK):**
+- **Real-time Updates:** The UI for open orders does not update in real-time. The `websocket` API should be used to stream order updates to the frontend, ensuring that the displayed information is always current.
+- **More Order Details:** The `frontendOpenOrders` info endpoint provides more detailed information about open orders, such as whether they are trigger orders, take-profit/stop-loss (TP/SL) orders, or reduce-only. This information should be displayed to the user.
+- **Cancel Orders:** The `exchange` endpoint allows for canceling orders. This functionality should be added to the open orders list, allowing users to cancel orders directly from the dashboard.
 
-## 3. Trading
+**Suggestions (Big Picture):**
+- **Batch Cancel:** Implement a "Cancel All" button to allow users to quickly cancel all open orders for a given wallet.
+- **Order Notifications:** Provide browser notifications when an order is filled or canceled.
 
-### 3.1. Implemented Features
+### 3. Positions
 
--   `POST /`: Places a new order.
+**Completeness:**
+- The dashboard displays a list of open positions for a selected wallet.
+- Similar to open orders, this is a basic but functional implementation.
 
-### 3.2. Discrepancies and Missing Features
+**API Compliance & Suggestions (SDK):**
+- **Real-time P&L:** The P&L (Profit & Loss) for positions is likely not updating in real-time. The `websocket` should be used to stream position updates and calculate real-time P&L.
+- **Leverage and Margin:** The `updateLeverage` and `updateIsolatedMargin` actions in the `exchange` endpoint allow users to manage their leverage and margin. This is a critical feature for a trading platform that is currently missing.
+- **Close Positions:** The `exchange` endpoint allows for closing positions by placing an opposing order. A "Close" button should be added to each position to simplify this process.
 
--   **Order Management:**
-    -   `cancel`: No endpoint to cancel an existing order by its ID.
-    -   `cancelByCloid`: No endpoint to cancel an order by its client-provided ID.
-    -   `modify`: No endpoint to modify an existing order.
-    -   `batchModify`: No endpoint to modify multiple orders at once.
--   **Position Management:**
-    -   `updateLeverage`: No endpoint to change the leverage for a specific asset.
-    -   `updateIsolatedMargin`: No endpoint to add or remove margin from an isolated position.
--   **Information Retrieval:** While the `info` endpoint in the Hyperliquid API provides a lot of data, our backend doesn't expose any of it. Key missing endpoints include:
-    -   Querying open orders.
-    -   Querying order status.
-    -   Querying trade fills.
-    -   Querying the user's overall state (positions, margin, etc.).
--   **Advanced Order Types:**
-    -   `twapOrder`: No support for placing Time-Weighted Average Price (TWAP) orders.
-    -   `scheduleCancel`: No support for the "dead man's switch" feature to cancel all orders at a future time.
--   **Transfers:**
-    -   The API allows for various types of transfers (USDC, Spot, between accounts) that are not exposed in our application.
+**Suggestions (Big Picture):**
+- **Position Charting:** Display a chart showing the entry price and the current price of the asset for each position.
+- **Social Sharing:** Allow users to share their position P&L on social media.
 
-## 4. Custom Bots
+## Trading Page
 
-### 4.1. Implemented Features
+The Trading Page is where users can manually place orders.
 
--   `POST /`: Create a new bot.
--   `GET /`: List all bots for the current user.
--   `POST /{bot_id}/run`: Run a specific bot.
--   `POST /{bot_id}/stop`: Stop a running bot.
--   `GET /{bot_id}/logs`: Retrieve logs for a specific bot.
+**Completeness:**
+- The page provides a basic interface for placing limit and market orders.
+- It also displays open orders and positions, similar to the dashboard.
+- The functionality is minimal and does not reflect the full capabilities of the Hyperliquid exchange.
 
-### 4.2. Missing Features and Potential Improvements
+**API Compliance & Suggestions (SDK):**
+- **Advanced Order Types:** The `exchange` endpoint supports a variety of order types, including trigger orders (take-profit and stop-loss), and time-in-force options (ALO, IOC). These should be added to the order form to give users more control over their trades.
+- **Order Modification:** The API allows for modifying existing orders (`modify` action). This is a key feature that is currently missing. Users should be able to modify the price and size of their open orders.
+- **Client Order ID (cloid):** The `order` action allows for a client-specified order ID (`cloid`). This is useful for preventing duplicate orders and for tracking orders within the client. The application should generate and use `cloids`.
 
--   **Status Endpoint:** There is no endpoint to check the current status of a bot (e.g., running, stopped, errored). This makes it difficult for a user to know if their bot is functioning correctly.
--   **Performance Tracking:** The platform does not track the performance of bots. Key metrics like PnL, number of trades, and win rate would be highly valuable.
--   **Backtesting:** A crucial feature for any bot platform is the ability to backtest a strategy against historical data. This is completely missing.
--   **Bot Code Management:**
-    -   `PUT /{bot_id}`: No endpoint to update the code of an existing bot.
-    -   `DELETE /{bot_id}`: No endpoint to delete a bot.
--   **Log Management:** The current log implementation is very basic. A more robust logging system would include log rotation, different log levels (info, warning, error), and the ability to clear logs.
--   **Security:** The bot code is executed directly on the server. This is a significant security risk, as a malicious bot could potentially compromise the entire system. The bot code should be sandboxed to prevent this.
--   **Secret Management:** The `runtime_inputs` are passed as plain text. This is not secure for sensitive data like API keys or other secrets. A proper secret management system should be integrated.
+**Suggestions (Big Picture):**
+- **TradingView Charting:** Integrate the TradingView charting library to provide users with a professional-grade charting experience.
+- **Depth Chart:** Display a real-time depth chart to help users visualize the order book.
+- **Click-to-Trade:** Allow users to click on the order book or chart to automatically populate the price in the order form.
 
-## 5. User Management
+## Bot Lab Page
 
-### 5.1. Implemented Features
+The Bot Lab allows users to create, manage, and run custom automated trading bots.
 
--   `POST /token`: User login and JWT token generation.
--   `POST /`: User registration.
--   `GET /me`: Fetches the current user's details.
+**Completeness:**
+- Users can create bots with Python code and a JSON schema for inputs.
+- Bots can be run with a specified wallet and capital allocation.
+- The bot runner uses `multiprocessing` for isolation and a `WebSocketListener` for real-time fills, which is a solid foundation.
 
-### 5.2. Missing Features and Potential Improvements
+**API Compliance & Suggestions (SDK):**
+- **Leverage in Bots:** The `BotTradingAPI` does not seem to account for leverage. The bot's `CapitalManager` should be enhanced to allow bots to specify and use leverage, and the `updateLeverage` action should be exposed to them.
+- **Access to Info Endpoints:** Bots currently have a limited `BotTradingAPI`. They should be given access to the `info` endpoint to allow them to query for data like historical fills, open orders, and market data, which would enable more sophisticated strategies.
+- **Real-time Order Book:** The `WebSocket` can stream `l2Book` data. This should be made available to bots to allow them to perform order book analysis and make more informed trading decisions.
 
--   **User Profile Management:** No endpoints to update user information (e.g., change password, update email).
--   **Password Reset:** No functionality for users to reset a forgotten password.
--   **User Deactivation/Deletion:** No way for a user to deactivate or delete their account.
--   **Role-Based Access Control (RBAC):** The system does not appear to have any concept of user roles (e.g., admin, user). This would be important for future administrative features.
+**Suggestions (Big Picture):**
+- **Backtesting Engine:** A backtesting engine would be a massive improvement. It would allow users to test their bot strategies against historical data before risking real capital.
+- **Bot Marketplace:** Create a marketplace where users can share and subscribe to each other's trading bots.
+- **More Languages:** While Python is a great start, supporting other languages like JavaScript (via Node.js) or Rust could attract a wider range of developers.
 
-## 6. Wallet Management
+## Vaults Page
 
-### 6.1. Implemented Features
+The Vaults Page is intended for users to deposit funds into Hyperliquid's vaults to earn a return.
 
--   `POST /`: Create a new wallet.
--   `GET /`: List all wallets for the current user.
--   `GET /{wallet_address}/balance`: Get the balance of a wallet.
--   `GET /{wallet_id}/open-orders`: Get open orders for a wallet.
--   `GET /{wallet_id}/positions`: Get positions for a wallet.
+**Completeness:**
+- The `architecture.md` and `api.md` state that depositing into vaults is supported, but withdrawing is not. This is a critical missing piece of functionality.
+- The frontend is very basic and only lists vaults.
 
-### 6.2. Missing Features and Potential Improvements
+**API Compliance & Suggestions (SDK):**
+- **Implement Withdrawals:** The `vaultTransfer` action in the `exchange` endpoint supports both deposits and withdrawals (`isDeposit`: `false`). The backend and frontend need to be updated to support withdrawals.
+- **Display Vault Details:** The `vaultDetails` query in the `info` endpoint provides a wealth of information about vaults, including their name, description, performance, and follower stats. This information should be displayed to the user to help them make informed decisions about where to deposit their funds.
+- **User's Vault Equity:** The `userVaultEquities` query in the `info` endpoint shows a user's deposits in various vaults. This should be displayed on the vaults page so users can see where their funds are and how they are performing.
 
--   **Wallet Deletion:** No endpoint to delete a wallet.
--   **Wallet Nicknames/Labels:** Users can't assign a custom name to a wallet, which would improve usability.
--   **Transaction History:** No endpoint to retrieve the transaction history for a wallet.
--   **Comprehensive User State:** The `get_user_state` method from the Hyperliquid API provides a wealth of information (margin summary, asset positions, etc.). The current implementation only exposes a fraction of this data.
--   **Private Key Security:** Private keys are stored in the database. While this is necessary for the bot functionality, they should be encrypted at rest to improve security.
+**Suggestions (Big Picture):**
+- **Vault Leaderboard:** Create a leaderboard of the top-performing vaults to help users discover the best opportunities.
+- **Simplified Vault Creation:** While the Hyperliquid UI is the primary way to create vaults, a simplified vault creation interface within the platform could be a powerful feature for advanced users.
 
-## 7. Manual Verification
+## Account Page
 
-Due to persistent issues with the test environment, the following endpoints were manually verified using `curl`:
+The Account Page handles user registration, login, and logout.
 
--   `POST /users/`: User creation was successful.
--   `POST /users/token`: User login and JWT token generation were successful.
--   `GET /staking/validators`: After fixing an `AttributeError` in the `get_validators` method, this endpoint now successfully returns a list of assets from the Hyperliquid API.
+**Completeness:**
+- The current implementation is a standard and complete username/password authentication system.
 
-## 8. Suggestions for New Features
+**API Compliance & Suggestions (SDK):**
+- **API Keys:** The Hyperliquid API supports API keys (`approveAgent` action). The platform should allow users to create and manage API keys for programmatic access to their accounts. This would be a significant feature for advanced traders and developers.
 
-Based on the Hyperliquid documentation, the following new features could be added to the platform:
+**Suggestions (Big-Picture):**
+- **Two-Factor Authentication (2FA):** For enhanced security, implement 2FA using a standard like TOTP (Time-based One-Time Password).
+- **Social Logins:** Allow users to register and log in using their Google, GitHub, or other social accounts for convenience.
 
--   **Spot Trading:** The Hyperliquid API supports spot trading, which is currently not implemented in the application. Adding this would significantly expand the platform's capabilities.
--   **Subaccounts:** The API allows for the creation and management of subaccounts. This would be a valuable feature for users who want to isolate different trading strategies or manage funds for multiple people.
--   **API Wallets:** The concept of "API Wallets" (or "Agent Wallets") in the Hyperliquid documentation could be integrated to provide more secure and flexible API key management.
--   **Websockets:** The Hyperliquid API provides a websocket interface for real-time data feeds. This could be used to provide users with live updates on their positions, orders, and market data.
--   **Bridge Integration:** The platform could integrate with the Hyperliquid bridge to allow users to deposit and withdraw funds directly from the application.
--   **Referrals:** The Hyperliquid API has a referral program. This could be integrated into the platform to incentivize user growth.
--   **Points:** The API also has a points system, which could be used to gamify the trading experience and reward active users.
+## General Architecture
+
+**Completeness:**
+- The overall architecture is well-designed, with a clear separation of concerns between the frontend, backend, and database.
+- The use of FastAPI, SQLAlchemy, and a modular structure is a solid foundation.
+
+**API Compliance & Suggestions (SDK):**
+- **Staking:** The `api.md` and `user_guide.md` mention a "Staking" page and API endpoints, but there is no `staking.html` in the frontend. The Hyperliquid API has extensive support for staking (`cDeposit`, `cWithdraw`, `tokenDelegate`). This feature should be properly implemented or removed to avoid confusion. *Correction*: The memory mentions the Staking feature was removed. The documentation should be updated to reflect this. I will make a note to do this.
+- **Error Handling:** The backend should provide more informative error messages to the frontend. The Hyperliquid API returns detailed error messages that should be parsed and passed on to the user.
+
+**Suggestions (Big-Picture):**
+- **Testing:** The backend has a `tests` directory, but the extent of the test coverage is unknown. A comprehensive test suite is crucial for ensuring the reliability of the platform. I will investigate the tests more deeply in a future step.
+- **Configuration Management:** The use of a `.env` file is good, but for a production system, a more robust solution like HashiCorp Vault or AWS Secrets Manager should be considered for managing sensitive information.

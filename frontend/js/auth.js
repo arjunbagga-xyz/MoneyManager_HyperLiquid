@@ -39,10 +39,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const password = document.getElementById("login-password").value;
 
             try {
-                const response = await fetch("http://localhost:8000/token", {
+                const response = await fetch("http://localhost:8000/users/token", {
                     method: "POST",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: `username=${username}&password=${password}`,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password }),
                 });
 
                 if (response.ok) {

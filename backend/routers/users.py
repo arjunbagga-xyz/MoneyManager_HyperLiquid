@@ -6,7 +6,7 @@ from .. import crud, models, schemas, security, database
 router = APIRouter()
 
 @router.post("/token", response_model=schemas.Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(database.get_db)):
+async def login_for_access_token(form_data: schemas.UserCreate, db: Session = Depends(database.get_db)):
     user = crud.get_user(db, username=form_data.username)
     if not user or not security.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(

@@ -37,20 +37,6 @@ This guide provides a step-by-step walkthrough of how to use the trading platfor
 5.  **View Bot Logs:**
     -   Click the "Logs" button next to the bot to view its logs.
 
-## Staking
-
-1.  **Navigate to the Staking Page:** Click on the "Staking" link in the navigation bar.
-2.  **Delegate Funds:**
-    -   Select a wallet.
-    -   Choose a validator from the list.
-    -   Enter the amount you want to delegate.
-    -   Click the "Delegate" button.
-3.  **Undelegate Funds:**
-    -   Select a wallet.
-    -   Choose a validator from the list.
-    -   Enter the amount you want to undelegate.
-    -   Click the "Undelegate" button.
-
 ## Vaults
 
 1.  **Navigate to the Vaults Page:** Click on the "Vaults" link in the navigation bar.

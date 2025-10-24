@@ -69,9 +69,8 @@ The bot execution engine is a core component of the platform, designed to run cu
 
 ## Staking and Vaults
 
-The platform integrates with Hyperliquid's staking and vaults features.
+The platform integrates with Hyperliquid's vaults features.
 
--   **Staking:** Users can delegate their funds to validators to earn rewards. The backend provides endpoints for getting a list of validators, delegating funds, and undelegating funds.
 -   **Vaults:** Users can deposit funds into vaults to earn a return. The backend provides endpoints for getting vault metadata and depositing funds. The withdrawal functionality is not yet implemented.
 
 ## Future Extensibility

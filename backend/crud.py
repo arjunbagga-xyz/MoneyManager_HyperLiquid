@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from cryptography.fernet import Fernet
 from . import models, schemas
-from .security import get_password_hash
+from .passwords import get_password_hash
 from .config import settings
 
 f = Fernet(settings.encryption_key.encode())

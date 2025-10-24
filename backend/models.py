@@ -51,6 +51,7 @@ class Trade(Base):
     price = Column(Float)
     quantity = Column(Float)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    source = Column(String, default="manual", index=True)
     wallet_id = Column(Integer, ForeignKey("wallets.id"))
     bot_id = Column(Integer, ForeignKey("bots.id"), nullable=True)
 

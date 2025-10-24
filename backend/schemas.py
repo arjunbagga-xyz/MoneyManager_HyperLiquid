@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
 
 class Token(BaseModel):
     access_token: str
@@ -43,6 +43,17 @@ class OrderRequest(BaseModel):
     order_type: dict
 
 
+class CancelOrderRequest(BaseModel):
+    wallet_id: int
+    symbol: str
+    oid: int
+
+
+class CancelOrdersBatchRequest(BaseModel):
+    wallet_id: int
+    cancellations: list[dict]
+
+
 class BotRunRequest(BaseModel):
     wallet_id: int
     capital_allocation: float
@@ -54,15 +65,11 @@ class VaultDepositRequest(BaseModel):
     vault_address: str
     amount: int
 
-class DelegateRequest(BaseModel):
-    wallet_id: int
-    validator_address: str
-    amount: float
 
-class UndelegateRequest(BaseModel):
+class VaultWithdrawRequest(BaseModel):
     wallet_id: int
-    validator_address: str
-    amount: float
+    vault_address: str
+    amount: int
 
 
 class WalletWithKey(Wallet):

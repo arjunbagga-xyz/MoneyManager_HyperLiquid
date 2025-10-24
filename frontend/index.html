@@ -15,7 +15,6 @@
                 <li><a href="trading.html">Trading</a></li>
                 <li><a href="bot_lab.html">Bot Lab</a></li>
                 <li><a href="vaults.html">Vaults</a></li>
-                <li><a href="staking.html">Staking</a></li>
                 <li><a href="account.html">Account</a></li>
             </ul>
         </nav>
@@ -30,21 +29,51 @@
             </div>
         </section>
 
-        <section id="open-orders">
-            <h3>Open Orders</h3>
-            <div id="order-list">
-                <!-- Open orders for the selected wallet will be displayed here -->
+        <section id="trading-activity">
+            <div class="tab">
+                <button class="tablinks active" onclick="openTab(event, 'Orders')">Open Orders</button>
+                <button class="tablinks" onclick="openTab(event, 'Positions')">Positions</button>
+                <button class="tablinks" onclick="openTab(event, 'OrderHistory')">Order History</button>
+                <button class="tablinks" onclick="openTab(event, 'TradeHistory')">Trade History</button>
             </div>
-        </section>
 
-        <section id="positions">
-            <h3>Positions</h3>
-            <div id="position-list">
-                <!-- Positions for the selected wallet will be displayed here -->
+            <div id="Orders" class="tabcontent" style="display: block;">
+                <h3>Open Orders</h3>
+                <div id="order-list"></div>
+            </div>
+
+            <div id="Positions" class="tabcontent">
+                <h3>Positions</h3>
+                <div id="position-list"></div>
+            </div>
+
+            <div id="OrderHistory" class="tabcontent">
+                <h3>Order History</h3>
+                <div id="order-history-list"></div>
+            </div>
+
+            <div id="TradeHistory" class="tabcontent">
+                <h3>Trade History</h3>
+                <div id="trade-history-list"></div>
             </div>
         </section>
     </main>
 
     <script src="js/dashboard.js"></script>
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+    </script>
 </body>
 </html>

@@ -6,8 +6,56 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+    let selectedWalletId = null;
+    let ws = null;
+
     fetchWalletsAndBalances(token);
 });
+
+function initializeWebSocket(walletAddress, token) {
+    if (ws) {
+        ws.close();
+    }
+
+    ws = new WebSocket(`ws://localhost:8000/ws/updates/${walletAddress}`);
+
+    ws.onopen = () => {
+        console.log("WebSocket connection established");
+    };
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log("WebSocket message received:", data);
+        // Add logic to update UI based on message type
+        // For now, just refresh the wallet state
+        if (selectedWalletId) {
+            fetchWalletState(selectedWalletId, token);
+            showNotification("Your wallet data has been updated!");
+        }
+    };
+
+    ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+    };
+
+    ws.onclose = () => {
+        console.log("WebSocket connection closed");
+    };
+}
+
+function showNotification(message) {
+    if (!("Notification" in window)) {
+        console.log("This browser does not support desktop notification");
+    } else if (Notification.permission === "granted") {
+        new Notification(message);
+    } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(function (permission) {
+            if (permission === "granted") {
+                new Notification(message);
+            }
+        });
+    }
+}
 
 async function fetchWalletsAndBalances(token) {
     try {
@@ -59,39 +107,34 @@ function displayWallets(wallets, token) {
         const li = document.createElement("li");
         li.textContent = `${wallet.name} - ${wallet.address} (Balance: ${wallet.balance} USDC)`;
         li.dataset.walletId = wallet.id;
-        li.addEventListener("click", () => {
-            fetchOrdersAndPositions(wallet.id, token);
+        li.dataset.walletAddress = wallet.address;
+        li.addEventListener("click", (event) => {
+            selectedWalletId = event.currentTarget.dataset.walletId;
+            const walletAddress = event.currentTarget.dataset.walletAddress;
+            fetchWalletState(selectedWalletId, token);
+            fetchOrderHistory(selectedWalletId, token);
+            fetchTradeHistory(selectedWalletId, token);
+            initializeWebSocket(walletAddress, token);
         });
         ul.appendChild(li);
     });
     walletList.appendChild(ul);
 }
 
-async function fetchOrdersAndPositions(walletId, token) {
+async function fetchWalletState(walletId, token) {
     try {
-        // Fetch open orders
-        const ordersResponse = await fetch(`http://localhost:8000/wallets/${walletId}/open-orders`, {
+        const response = await fetch(`http://localhost:8000/wallets/${walletId}/state`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
-        if (ordersResponse.ok) {
-            const orders = await ordersResponse.json();
-            displayOrders(orders);
+        if (response.ok) {
+            const data = await response.json();
+            displayOrders(data.open_orders);
+            displayPositions(data.positions);
         } else {
-            throw new Error("Failed to fetch open orders");
-        }
-
-        // Fetch positions
-        const positionsResponse = await fetch(`http://localhost:8000/wallets/${walletId}/positions`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-        if (positionsResponse.ok) {
-            const positions = await positionsResponse.json();
-            displayPositions(positions);
-        } else {
-            throw new Error("Failed to fetch positions");
+            throw new Error("Failed to fetch wallet state");
         }
     } catch (error) {
-        console.error("Error fetching orders and positions:", error);
+        console.error("Error fetching wallet state:", error);
     }
 }
 
@@ -102,13 +145,105 @@ function displayOrders(orders) {
         orderList.innerHTML = "<p>No open orders.</p>";
         return;
     }
-    const ul = document.createElement("ul");
+
+    const table = document.createElement("table");
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Size</th>
+                <th>Price</th>
+                <th>Type</th>
+                <th>Timestamp</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    `;
+    const tbody = table.querySelector("tbody");
+
     orders.forEach(order => {
-        const li = document.createElement("li");
-        li.textContent = `Symbol: ${order.coin}, Side: ${order.side}, Size: ${order.sz}, Price: ${order.limitPx}`;
-        ul.appendChild(li);
+        const row = tbody.insertRow();
+        const order_info = order.order;
+        row.insertCell(0).textContent = order_info.coin;
+        row.insertCell(1).textContent = order_info.side;
+        row.insertCell(2).textContent = order_info.sz;
+        row.insertCell(3).textContent = order_info.limitPx;
+        row.insertCell(4).textContent = order_info.trigger ? "Trigger" : "Limit/Market";
+        row.insertCell(5).textContent = new Date(order_info.timestamp).toLocaleString();
+
+        const cancelButton = document.createElement("button");
+        cancelButton.textContent = "Cancel";
+        cancelButton.dataset.oid = order_info.oid;
+        cancelButton.dataset.symbol = order_info.coin;
+        cancelButton.addEventListener("click", cancelOrder);
+        row.insertCell(6).appendChild(cancelButton);
     });
-    orderList.appendChild(ul);
+
+    orderList.appendChild(table);
+
+    const cancelAllButton = document.createElement("button");
+    cancelAllButton.textContent = "Cancel All Orders";
+    cancelAllButton.addEventListener("click", cancelAllOrders);
+    orderList.appendChild(cancelAllButton);
+}
+
+async function cancelOrder(event) {
+    const oid = event.target.dataset.oid;
+    const symbol = event.target.dataset.symbol;
+    const token = localStorage.getItem("jwt");
+
+    try {
+        const response = await fetch(`http://localhost:8000/trades/cancel`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                wallet_id: selectedWalletId,
+                symbol: symbol,
+                oid: parseInt(oid)
+            })
+        });
+
+        if (response.ok) {
+            alert("Order cancelled successfully!");
+            fetchWalletState(selectedWalletId, token);
+        } else {
+            const error = await response.json();
+            alert(`Failed to cancel order: ${error.detail}`);
+        }
+    } catch (error) {
+        console.error("Error cancelling order:", error);
+        alert("An error occurred while cancelling the order.");
+    }
+}
+
+async function cancelAllOrders() {
+    const token = localStorage.getItem("jwt");
+
+    try {
+        const response = await fetch(`http://localhost:8000/trades/cancel-all/${selectedWalletId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            alert("All orders cancelled successfully!");
+            fetchWalletState(selectedWalletId, token);
+        } else {
+            const error = await response.json();
+            alert(`Failed to cancel all orders: ${error.detail}`);
+        }
+    } catch (error) {
+        console.error("Error cancelling all orders:", error);
+        alert("An error occurred while cancelling all orders.");
+    }
 }
 
 function displayPositions(positions) {
@@ -118,12 +253,139 @@ function displayPositions(positions) {
         positionList.innerHTML = "<p>No open positions.</p>";
         return;
     }
-    const ul = document.createElement("ul");
+
+    const table = document.createElement("table");
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Size</th>
+                <th>Entry Price</th>
+                <th>P&L</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    `;
+    const tbody = table.querySelector("tbody");
+
     positions.forEach(position => {
-        const li = document.createElement("li");
-        const entryPx = position.position.entryPx ? parseFloat(position.position.entryPx).toFixed(2) : "N/A";
-        li.textContent = `Symbol: ${position.position.coin}, Size: ${position.position.szi}, Entry Price: ${entryPx}`;
-        ul.appendChild(li);
+        const row = tbody.insertRow();
+        const position_info = position.position;
+        row.insertCell(0).textContent = position_info.coin;
+        row.insertCell(1).textContent = position_info.szi;
+        row.insertCell(2).textContent = position_info.entryPx ? parseFloat(position_info.entryPx).toFixed(2) : "N/A";
+        row.insertCell(3).textContent = position.unrealizedPnl;
     });
-    positionList.appendChild(ul);
+
+    positionList.appendChild(table);
+}
+
+async function fetchOrderHistory(walletId, token) {
+    try {
+        const response = await fetch(`http://localhost:8000/wallets/${walletId}/order-history`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            displayOrderHistory(data);
+        } else {
+            throw new Error("Failed to fetch order history");
+        }
+    } catch (error) {
+        console.error("Error fetching order history:", error);
+    }
+}
+
+function displayOrderHistory(orders) {
+    const orderHistoryList = document.getElementById("order-history-list");
+    orderHistoryList.innerHTML = "";
+    if (orders.length === 0) {
+        orderHistoryList.innerHTML = "<p>No order history.</p>";
+        return;
+    }
+
+    const table = document.createElement("table");
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Size</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    `;
+    const tbody = table.querySelector("tbody");
+
+    orders.forEach(order => {
+        const row = tbody.insertRow();
+        const order_info = order.order;
+        row.insertCell(0).textContent = order_info.coin;
+        row.insertCell(1).textContent = order_info.side;
+        row.insertCell(2).textContent = order_info.sz;
+        row.insertCell(3).textContent = order_info.limitPx;
+        row.insertCell(4).textContent = order.status;
+        row.insertCell(5).textContent = new Date(order_info.timestamp).toLocaleString();
+    });
+
+    orderHistoryList.appendChild(table);
+}
+
+async function fetchTradeHistory(walletId, token) {
+    try {
+        const response = await fetch(`http://localhost:8000/wallets/${walletId}/trade-history`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            displayTradeHistory(data);
+        } else {
+            throw new Error("Failed to fetch trade history");
+        }
+    } catch (error) {
+        console.error("Error fetching trade history:", error);
+    }
+}
+
+function displayTradeHistory(trades) {
+    const tradeHistoryList = document.getElementById("trade-history-list");
+    tradeHistoryList.innerHTML = "";
+    if (trades.length === 0) {
+        tradeHistoryList.innerHTML = "<p>No trade history.</p>";
+        return;
+    }
+
+    const table = document.createElement("table");
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Size</th>
+                <th>Price</th>
+                <th>Fee</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    `;
+    const tbody = table.querySelector("tbody");
+
+    trades.forEach(trade => {
+        const row = tbody.insertRow();
+        row.insertCell(0).textContent = trade.coin;
+        row.insertCell(1).textContent = trade.side;
+        row.insertCell(2).textContent = trade.sz;
+        row.insertCell(3).textContent = trade.px;
+        row.insertCell(4).textContent = trade.fee;
+        row.insertCell(5).textContent = new Date(trade.time).toLocaleString();
+    });
+
+    tradeHistoryList.appendChild(table);
 }

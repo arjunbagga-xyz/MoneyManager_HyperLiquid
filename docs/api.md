@@ -258,60 +258,6 @@ This document provides a detailed overview of the API endpoints available in the
     Hello, World!
     ```
 
-## Staking
-
-### GET /validators
-
--   **Description:** Returns a list of available validators.
--   **Authentication:** Requires a valid JWT in the `Authorization` header.
--   **Response:**
-    ```json
-    [
-      {
-        "address": "0x123...",
-        "name": "Validator 1"
-      }
-    ]
-    ```
-
-### POST /delegate
-
--   **Description:** Delegates funds to a validator.
--   **Authentication:** Requires a valid JWT in the `Authorization` header.
--   **Request Body:**
-    ```json
-    {
-      "wallet_id": 1,
-      "validator_address": "0x123...",
-      "amount": 100.0
-    }
-    ```
--   **Response:**
-    ```json
-    {
-      "status": "ok"
-    }
-    ```
-
-### POST /undelegate
-
--   **Description:** Undelegates funds from a validator.
--   **Authentication:** Requires a valid JWT in the `Authorization` header.
--   **Request Body:**
-    ```json
-    {
-      "wallet_id": 1,
-      "validator_address": "0x123...",
-      "amount": 100.0
-    }
-    ```
--   **Response:**
-    ```json
-    {
-      "status": "ok"
-    }
-    ```
-
 ## Vaults
 
 ### GET /meta

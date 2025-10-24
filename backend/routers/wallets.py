@@ -50,3 +50,47 @@ def get_positions(
 
     hl_api = HyperliquidAPI(private_key=wallet.private_key)
     return hl_api.get_positions(user_address=wallet.address)
+
+@router.get("/{wallet_address}/vault-equity")
+def get_vault_equity(
+    wallet_address: str, hl_api: HyperliquidAPI = Depends(HyperliquidAPI), current_user: models.User = Depends(security.get_current_user)
+):
+    # We don't need to check the wallet ownership here, as the API call is read-only
+    # and doesn't require a private key. We just need to make sure the user is authenticated.
+    return hl_api.get_user_vault_equity(user_address=wallet_address)
+
+@router.get("/{wallet_id}/state")
+def get_wallet_state(
+    wallet_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+):
+    wallet = crud.get_wallet(db, wallet_id=wallet_id, user_id=current_user.id)
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+
+    hl_api = HyperliquidAPI(private_key=wallet.private_key)
+    open_orders = hl_api.get_open_orders(user_address=wallet.address)
+    positions = hl_api.get_positions(user_address=wallet.address)
+
+    return {"open_orders": open_orders, "positions": positions}
+
+@router.get("/{wallet_id}/order-history")
+def get_order_history(
+    wallet_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+):
+    wallet = crud.get_wallet(db, wallet_id=wallet_id, user_id=current_user.id)
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+
+    hl_api = HyperliquidAPI(private_key=wallet.private_key)
+    return hl_api.get_historical_orders(user_address=wallet.address)
+
+@router.get("/{wallet_id}/trade-history")
+def get_trade_history(
+    wallet_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+):
+    wallet = crud.get_wallet(db, wallet_id=wallet_id, user_id=current_user.id)
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+
+    hl_api = HyperliquidAPI(private_key=wallet.private_key)
+    return hl_api.get_user_fills(user_address=wallet.address)

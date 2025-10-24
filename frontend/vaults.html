@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vaults - Trading Platform</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
     <header>
@@ -14,7 +15,6 @@
                 <li><a href="index.html">Dashboard</a></li>
                 <li><a href="trading.html">Trading</a></li>
                 <li><a href="vaults.html" class="active">Vaults</a></li>
-                <li><a href="staking.html">Staking</a></li>
                 <li><a href="bots.html">Bot Lab</a></li>
                 <li><a href="account.html">Account</a></li>
             </ul>
@@ -23,8 +23,23 @@
     <main>
         <section id="vaults">
             <h2>Vaults</h2>
+            <div>
+                <label for="wallet-selector">Select Wallet:</label>
+                <select id="wallet-selector"></select>
+            </div>
+            <hr>
             <div id="vault-list"></div>
         </section>
+
+        <!-- Modal for Vault Details -->
+        <div id="vault-details-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <div id="modal-body">
+                    <!-- Vault details will be populated here -->
+                </div>
+            </div>
+        </div>
     </main>
     <script src="js/auth.js"></script>
     <script src="js/vaults.js"></script>
