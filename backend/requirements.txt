@@ -11,3 +11,4 @@ bcrypt==3.2.0
 pydantic-settings
 hyperliquid-python-sdk
 websockets
+pytest-dotenv
