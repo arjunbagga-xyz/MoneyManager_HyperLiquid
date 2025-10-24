@@ -40,6 +40,11 @@ class HyperliquidAPI(ExchangeInterface):
             raise Exception("Exchange not initialized. Provide a private key.")
         return self.exchange.order(symbol, is_buy, sz, limit_px, order_type)
 
+    def modify_order(self, symbol: str, oid: int, sz: float, limit_px: float, order_type: dict):
+        if not self.exchange:
+            raise Exception("Exchange not initialized. Provide a private key.")
+        return self.exchange.modify_order(symbol, oid, sz, limit_px, order_type)
+
     def cancel_order(self, symbol: str, oid: int):
         if not self.exchange:
             raise Exception("Exchange not initialized. Provide a private key.")
@@ -88,3 +93,13 @@ class HyperliquidAPI(ExchangeInterface):
 
     def get_user_fills(self, user_address: str):
         return self.info.user_fills(user_address)
+
+    def place_spot_order(self, symbol: str, is_buy: bool, sz: float, limit_px: float, order_type: dict):
+        if not self.exchange:
+            raise Exception("Exchange not initialized. Provide a private key.")
+        # Spot orders are placed with the `order` method, with the `is_spot` flag set to True
+        return self.exchange.order(symbol, is_buy, sz, limit_px, order_type, is_spot=True)
+
+    def get_spot_balances(self, user_address: str):
+        user_state = self.info.user_state(user_address)
+        return user_state.get("spotAssetPositions", [])

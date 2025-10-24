@@ -24,6 +24,23 @@ def place_order(
         order_type=order.order_type,
     )
 
+@router.put("/{order_id}")
+def modify_order(
+    order_id: int, order: schemas.ModifyOrderRequest, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+):
+    wallet = crud.get_wallet(db, wallet_id=order.wallet_id, user_id=current_user.id)
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+
+    hl_api = HyperliquidAPI(private_key=wallet.private_key)
+    return hl_api.modify_order(
+        symbol=order.symbol,
+        oid=order_id,
+        sz=order.sz,
+        limit_px=order.limit_px,
+        order_type=order.order_type,
+    )
+
 @router.delete("/cancel")
 def cancel_order(
     cancel_request: schemas.CancelOrderRequest, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
@@ -54,3 +71,20 @@ def cancel_all_orders(
     ]
 
     return hl_api.cancel_orders_batch(cancellations)
+
+@router.post("/spot")
+def place_spot_order(
+    order: schemas.SpotOrderRequest, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+):
+    wallet = crud.get_wallet(db, wallet_id=order.wallet_id, user_id=current_user.id)
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+
+    hl_api = HyperliquidAPI(private_key=wallet.private_key)
+    return hl_api.place_spot_order(
+        symbol=order.symbol,
+        is_buy=order.is_buy,
+        sz=order.sz,
+        limit_px=order.limit_px,
+        order_type=order.order_type,
+    )

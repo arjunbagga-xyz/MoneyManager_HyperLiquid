@@ -51,7 +51,7 @@ def test_login_for_access_token(client: TestClient):
     client.post("/users/", json={"username": "testuser", "password": "testpassword"})
     response = client.post(
         "/users/token",
-        data={"username": "testuser", "password": "testpassword"},
+        json={"username": "testuser", "password": "testpassword"},
     )
     assert response.status_code == 200, response.text
     data = response.json()
@@ -62,7 +62,7 @@ def authenticated_client(client: TestClient) -> TestClient:
     client.post("/users/", json={"username": "testuser", "password": "testpassword"})
     response = client.post(
         "/users/token",
-        data={"username": "testuser", "password": "testpassword"},
+        json={"username": "testuser", "password": "testpassword"},
     )
     token = response.json()["access_token"]
     client.headers = {"Authorization": f"Bearer {token}"}

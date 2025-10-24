@@ -41,6 +41,26 @@ class OrderRequest(BaseModel):
     sz: float
     limit_px: float
     order_type: dict
+    cloid: Optional[str] = None
+
+
+class ModifyOrderRequest(BaseModel):
+    wallet_id: int
+    symbol: str
+    sz: float
+    limit_px: float
+    order_type: dict
+    cloid: Optional[str] = None
+
+
+class SpotOrderRequest(BaseModel):
+    wallet_id: int
+    symbol: str
+    is_buy: bool
+    sz: float
+    limit_px: float
+    order_type: dict
+    cloid: Optional[str] = None
 
 
 class CancelOrderRequest(BaseModel):
