@@ -10,6 +10,7 @@ def create_app():
     def on_startup():
         Base.metadata.create_all(bind=engine)
 
+    # Include your routers
     app.include_router(users.router, prefix="/users", tags=["users"])
     app.include_router(wallets.router, prefix="/wallets", tags=["wallets"])
     app.include_router(bots.router, prefix="/bots", tags=["bots"])
@@ -19,10 +20,7 @@ def create_app():
     app.include_router(market.router, prefix="/market", tags=["market"])
     app.include_router(bot_ws.router, tags=["bot_websockets"])
 
-    @app.get("/")
-    def read_root():
-        return {"Hello": "World"}
-
+    # 👇 Serve your frontend files
     app.mount("/", StaticFiles(directory="frontend", html=True), name="static")
 
     return app
