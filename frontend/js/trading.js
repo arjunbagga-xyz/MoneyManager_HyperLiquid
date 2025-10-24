@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function fetchWallets() {
         try {
-            const response = await fetch("http://localhost:8000/wallets/", {
+            const response = await fetch("/wallets/", {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!response.ok) throw new Error("Failed to fetch wallets");
@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function fetchOpenOrders(walletId) {
         try {
-            const response = await fetch(`http://localhost:8000/wallets/${walletId}/open-orders`, {
+            const response = await fetch(`/wallets/${walletId}/open-orders`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!response.ok) throw new Error("Failed to fetch open orders");
@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const walletId = walletSelector.value;
         const order_type = { "limit": { "tif": "Gtc" } }; // Assuming GTC for simplicity
         try {
-            const response = await fetch(`http://localhost:8000/trades/${orderId}`, {
+            const response = await fetch(`/trades/${orderId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -125,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function fetchPositions(walletId) {
         try {
-            const response = await fetch(`http://localhost:8000/wallets/${walletId}/positions`, {
+            const response = await fetch(`/wallets/${walletId}/positions`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!response.ok) throw new Error("Failed to fetch positions");
@@ -189,7 +189,7 @@ function uuidv4() {
             order_type = { "trigger": { "trigger_px": trigger_px, "is_market": false, "order_type": { "limit": { "tif": timeInForce } } } };
         }
 
-        const endpoint = tradingMode === 'spot' ? `http://localhost:8000/trades/spot` : `http://localhost:8000/trades/`;
+        const endpoint = tradingMode === 'spot' ? `/trades/spot` : `/trades/`;
 
         try {
             const response = await fetch(endpoint, {
@@ -266,7 +266,7 @@ function uuidv4() {
         try {
             const now = Math.floor(Date.now());
             const startTime = now - (1000 * 60 * 60 * 24 * 30); // 30 days ago
-            const response = await fetch(`http://localhost:8000/market/candles?symbol=${symbol}&interval=1h&start_time=${startTime}&end_time=${now}`, {
+            const response = await fetch(`/market/candles?symbol=${symbol}&interval=1h&start_time=${startTime}&end_time=${now}`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!response.ok) throw new Error("Failed to fetch chart data");
@@ -288,7 +288,65 @@ function uuidv4() {
 
     document.getElementById("symbol").addEventListener("change", (e) => {
         loadChartData(e.target.value);
+        loadDepthChart(e.target.value);
     });
+
+    let depthChart;
+    let bidSeries;
+    let askSeries;
+
+    function initializeDepthChart() {
+        const chartContainer = document.getElementById('depth-chart');
+        depthChart = LightweightCharts.createChart(chartContainer, {
+            width: chartContainer.clientWidth,
+            height: chartContainer.clientHeight,
+            layout: {
+                backgroundColor: '#ffffff',
+                textColor: 'rgba(0, 0, 0, 0.9)',
+            },
+            grid: {
+                vertLines: {
+                    color: 'rgba(197, 203, 206, 0.5)',
+                },
+                horzLines: {
+                    color: 'rgba(197, 203, 206, 0.5)',
+                },
+            },
+        });
+        bidSeries = depthChart.addAreaSeries({
+            topColor: 'rgba(38, 166, 154, 0.28)',
+            bottomColor: 'rgba(38, 166, 154, 0.05)',
+            lineColor: 'rgba(38, 166, 154, 1)',
+            lineWidth: 2,
+        });
+        askSeries = depthChart.addAreaSeries({
+            topColor: 'rgba(239, 83, 80, 0.28)',
+            bottomColor: 'rgba(239, 83, 80, 0.05)',
+            lineColor: 'rgba(239, 83, 80, 1)',
+            lineWidth: 2,
+        });
+    }
+
+    async function loadDepthChart(symbol) {
+        if (!symbol) return;
+        try {
+            const response = await fetch(`/market/depth?symbol=${symbol}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error("Failed to fetch depth chart data");
+            const data = await response.json();
+
+            const bids = data.levels[0].map(level => ({ time: parseFloat(level.px), value: parseFloat(level.sz) }));
+            const asks = data.levels[1].map(level => ({ time: parseFloat(level.px), value: parseFloat(level.sz) }));
+
+            bidSeries.setData(bids);
+            askSeries.setData(asks);
+        } catch (error) {
+            console.error("Error fetching depth chart data:", error);
+        }
+    }
+
+    initializeDepthChart();
 
     chart.subscribeClick(param => {
         const price = param.seriesPrices.get(candlestickSeries);

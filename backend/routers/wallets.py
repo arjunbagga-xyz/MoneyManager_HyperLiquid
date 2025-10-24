@@ -20,6 +20,21 @@ def read_wallets(
     wallets = crud.get_wallets(db, user_id=current_user.id, skip=skip, limit=limit)
     return wallets
 
+@router.get("/export", response_model=list[schemas.WalletExport])
+def export_wallets(
+    db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+):
+    wallets = crud.get_wallets(db, user_id=current_user.id)
+    return wallets
+
+@router.post("/import")
+def import_wallets(
+    wallets: list[schemas.WalletImport], db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+):
+    for wallet in wallets:
+        crud.create_wallet(db=db, wallet=wallet, user_id=current_user.id)
+    return {"status": "success"}
+
 @router.get("/{wallet_address}/balance")
 def get_wallet_balance(wallet_address: str, hl_api: HyperliquidAPI = Depends(HyperliquidAPI)):
     try:

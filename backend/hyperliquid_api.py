@@ -115,3 +115,6 @@ class HyperliquidAPI(ExchangeInterface):
 
     def get_candles(self, symbol: str, interval: str, start_time: int, end_time: int):
         return self.info.candles_snapshot(symbol, interval, start_time, end_time)
+
+    def get_l2_book(self, symbol: str):
+        return self.info.l2_book(symbol)

@@ -26,7 +26,7 @@ async function initializeDashboard(token) {
 }
 
 async function fetchWallets(token) {
-    const response = await fetch("http://localhost:8000/wallets/", {
+    const response = await fetch("/wallets/", {
         headers: { "Authorization": `Bearer ${token}` }
     });
     if (response.status === 401) {
@@ -41,7 +41,7 @@ async function fetchWallets(token) {
 
 async function fetchSubaccountsForWallets(wallets, token) {
     for (const wallet of wallets) {
-        const response = await fetch(`http://localhost:8000/wallets/${wallet.address}/subaccounts`, {
+        const response = await fetch(`/wallets/${wallet.address}/subaccounts`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         if (response.ok) {
@@ -120,7 +120,7 @@ function handleSubaccountClick(subaccountAddress, token) {
 
 async function fetchConsolidatedState(walletAddress, token) {
     try {
-        const response = await fetch(`http://localhost:8000/wallets/${walletAddress}/consolidated-state`, {
+        const response = await fetch(`/wallets/${walletAddress}/consolidated-state`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         if (response.ok) {
@@ -139,7 +139,7 @@ async function fetchConsolidatedState(walletAddress, token) {
 
 async function fetchAddressState(walletAddress, token) {
     try {
-        const response = await fetch(`http://localhost:8000/wallets/state/${walletAddress}`, {
+        const response = await fetch(`/wallets/state/${walletAddress}`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         if (response.ok) {
@@ -218,7 +218,7 @@ async function cancelOrder(event) {
     const token = localStorage.getItem("jwt");
 
     try {
-        const response = await fetch(`http://localhost:8000/trades/cancel`, {
+        const response = await fetch(`/trades/cancel`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
@@ -256,7 +256,7 @@ async function cancelAllOrders() {
     const token = localStorage.getItem("jwt");
 
     try {
-        const response = await fetch(`http://localhost:8000/trades/cancel-all/${selectedAddress}`, {
+        const response = await fetch(`/trades/cancel-all/${selectedAddress}`, {
             method: "DELETE",
             headers: {
                 "Authorization": `Bearer ${token}`
@@ -348,7 +348,7 @@ function displaySpotBalances(balances) {
 
 async function fetchOrderHistory(walletAddress, token) {
     try {
-        const response = await fetch(`http://localhost:8000/wallets/order-history/${walletAddress}`, {
+        const response = await fetch(`/wallets/order-history/${walletAddress}`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         if (response.ok) {
@@ -403,7 +403,7 @@ function displayOrderHistory(orders) {
 
 async function fetchTradeHistory(walletAddress, token) {
     try {
-        const response = await fetch(`http://localhost:8000/wallets/trade-history/${walletAddress}`, {
+        const response = await fetch(`/wallets/trade-history/${walletAddress}`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         if (response.ok) {
@@ -460,7 +460,7 @@ async function fetchPortfolioHistory(walletAddress, token) {
     const endTime = Math.floor(Date.now() / 1000);
     const startTime = endTime - (30 * 24 * 60 * 60); // 30 days ago
     try {
-        const response = await fetch(`http://localhost:8000/wallets/portfolio-history/${walletAddress}?start_time=${startTime}&end_time=${endTime}`, {
+        const response = await fetch(`/wallets/portfolio-history/${walletAddress}?start_time=${startTime}&end_time=${endTime}`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         if (response.ok) {
@@ -500,7 +500,9 @@ function initializeWebSocket(walletAddress) {
         ws.close();
     }
 
-    ws = new WebSocket(`ws://localhost:8000/ws/updates/${walletAddress}`);
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//${window.location.host}/ws/updates/${walletAddress}`;
+    ws = new WebSocket(wsUrl);
 
     ws.onopen = () => console.log("WebSocket connection established");
     ws.onmessage = (event) => {
@@ -543,7 +545,7 @@ async function fetchFundingRateHistory(symbol, token) {
     const endTime = Date.now();
     const startTime = endTime - (30 * 24 * 60 * 60 * 1000); // 30 days ago in ms
     try {
-        const response = await fetch(`http://localhost:8000/market/funding-history?symbol=${symbol}&start_time=${startTime}&end_time=${endTime}`, {
+        const response = await fetch(`/market/funding-history?symbol=${symbol}&start_time=${startTime}&end_time=${endTime}`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         if (response.ok) {

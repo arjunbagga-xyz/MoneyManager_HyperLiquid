@@ -27,6 +27,13 @@ class WalletBase(BaseModel):
 class WalletCreate(WalletBase):
     private_key: str
 
+class WalletImport(WalletBase):
+    private_key: str
+
+class WalletExport(WalletBase):
+    id: int
+    owner_id: int
+
 class Wallet(WalletBase):
     id: int
     owner_id: int

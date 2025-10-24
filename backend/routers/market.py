@@ -11,3 +11,7 @@ def get_funding_history(symbol: str, start_time: int, end_time: int, hl_api: Hyp
 @router.get("/candles")
 def get_candles(symbol: str, interval: str, start_time: int, end_time: int, hl_api: HyperliquidAPI = Depends(HyperliquidAPI)):
     return hl_api.get_candles(symbol=symbol, interval=interval, start_time=start_time, end_time=end_time)
+
+@router.get("/depth")
+def get_depth(symbol: str, hl_api: HyperliquidAPI = Depends(HyperliquidAPI)):
+    return hl_api.get_l2_book(symbol=symbol)
