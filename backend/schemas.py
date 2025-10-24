@@ -64,7 +64,7 @@ class SpotOrderRequest(BaseModel):
 
 
 class CancelOrderRequest(BaseModel):
-    wallet_id: int
+    wallet_address: str
     symbol: str
     oid: int
 

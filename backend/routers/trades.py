@@ -45,20 +45,23 @@ def modify_order(
 def cancel_order(
     cancel_request: schemas.CancelOrderRequest, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
 ):
-    wallet = crud.get_wallet(db, wallet_id=cancel_request.wallet_id, user_id=current_user.id)
+    # We need to find the wallet in the DB to get the private key for signing
+    wallet = db.query(models.Wallet).filter(models.Wallet.address == cancel_request.wallet_address, models.Wallet.owner_id == current_user.id).first()
     if not wallet:
-        raise HTTPException(status_code=404, detail="Wallet not found")
+        # We need to check if this is a subaccount of a managed wallet
+        # This logic can be complex, for now, we assume only master accounts can cancel
+        raise HTTPException(status_code=404, detail="Wallet not found or you are not the owner")
 
     hl_api = HyperliquidAPI(private_key=wallet.private_key)
     return hl_api.cancel_order(symbol=cancel_request.symbol, oid=cancel_request.oid)
 
-@router.delete("/cancel-all/{wallet_id}")
+@router.delete("/cancel-all/{wallet_address}")
 def cancel_all_orders(
-    wallet_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+    wallet_address: str, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
 ):
-    wallet = crud.get_wallet(db, wallet_id=wallet_id, user_id=current_user.id)
+    wallet = db.query(models.Wallet).filter(models.Wallet.address == wallet_address, models.Wallet.owner_id == current_user.id).first()
     if not wallet:
-        raise HTTPException(status_code=404, detail="Wallet not found")
+        raise HTTPException(status_code=404, detail="Wallet not found or you are not the owner")
 
     hl_api = HyperliquidAPI(private_key=wallet.private_key)
     open_orders = hl_api.get_open_orders(user_address=wallet.address)

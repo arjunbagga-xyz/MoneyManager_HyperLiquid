@@ -16,6 +16,9 @@ class HyperliquidAPI(ExchangeInterface):
     def get_user_state(self, user_address: str):
         return self.info.user_state(user_address)
 
+    def get_sub_accounts(self, user_address: str):
+        return self.info.sub_accounts(user_address)
+
     def get_all_mids(self):
         return self.info.all_mids()
 

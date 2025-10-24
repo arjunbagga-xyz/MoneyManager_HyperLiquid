@@ -160,6 +160,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const tradingModeSelector = document.getElementById("trading-mode");
 
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
     orderForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const walletId = walletSelector.value;
@@ -170,6 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const orderType = document.getElementById("order-type").value;
         const timeInForce = document.getElementById("time-in-force").value;
         const tradingMode = tradingModeSelector.value;
+        const cloid = uuidv4();
 
         let order_type = {};
         if (orderType === 'limit') {
@@ -190,7 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify({ wallet_id: parseInt(walletId), symbol, is_buy, sz, limit_px, order_type })
+                body: JSON.stringify({ wallet_id: parseInt(walletId), symbol, is_buy, sz, limit_px, order_type, cloid })
             });
 
             if (response.ok) {
@@ -280,6 +288,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("symbol").addEventListener("change", (e) => {
         loadChartData(e.target.value);
+    });
+
+    chart.subscribeClick(param => {
+        const price = param.seriesPrices.get(candlestickSeries);
+        if (price) {
+            document.getElementById('price').value = price.close || price.value;
+        }
+    });
+
+    chart.subscribeCrosshairMove(param => {
+        const price = param.seriesPrices.get(candlestickSeries);
+        if (price) {
+            // You could update a live price display here if you had one
+        }
     });
 
     initialize();
