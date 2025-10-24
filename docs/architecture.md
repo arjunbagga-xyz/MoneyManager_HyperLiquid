@@ -66,6 +66,14 @@ The bot execution engine is a core component of the platform, designed to run cu
 -   **Capital Management:** A `CapitalManager` class tracks the bot's available capital and positions to enforce capital allocation limits.
 -   **Real-time Updates:** A `WebSocketListener` runs in a separate thread for each bot, listening for fill events from the Hyperliquid exchange. This allows the `CapitalManager` to maintain an accurate, real-time view of the bot's capital and positions.
 -   **Trading API:** A `BotTradingAPI` wrapper is provided to the bot's execution context. This API enforces the capital allocation limit by checking the value of proposed orders against the bot's available capital before placing them.
+-   **Real-time Dashboard:** A new WebSocket endpoint (`/ws/bots/{bot_id}/dashboard`) streams real-time logs and performance metrics to the frontend, providing a live dashboard for each running bot.
+
+## Multi-Account Management
+
+The platform supports managing multiple wallets and subaccounts under a single user profile.
+
+-   **Hierarchical View:** The frontend displays a hierarchical tree structure of master accounts and their associated subaccounts.
+-   **Consolidated Dashboard:** A consolidated dashboard view aggregates data from a master account and all its subaccounts, providing a comprehensive overview of the entire portfolio.
 
 ## Staking and Vaults
 

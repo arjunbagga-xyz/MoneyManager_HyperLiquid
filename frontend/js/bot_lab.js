@@ -9,6 +9,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const runBotMessage = document.getElementById("run-bot-message");
     const closeModal = document.getElementsByClassName("close-button")[0];
 
+    const dashboardModal = document.getElementById("bot-dashboard-modal");
+    const closeDashboardModal = document.getElementsByClassName("close-dashboard-button")[0];
+    let dashboardWs = null;
+
     let bots = [];
     let wallets = [];
     let currentBotId = null;
@@ -22,9 +26,21 @@ document.addEventListener("DOMContentLoaded", () => {
     closeModal.onclick = function() {
         modal.style.display = "none";
     }
+    closeDashboardModal.onclick = function() {
+        dashboardModal.style.display = "none";
+        if (dashboardWs) {
+            dashboardWs.close();
+        }
+    }
     window.onclick = function(event) {
         if (event.target == modal) {
             modal.style.display = "none";
+        }
+        if (event.target == dashboardModal) {
+            dashboardModal.style.display = "none";
+            if (dashboardWs) {
+                dashboardWs.close();
+            }
         }
     }
 
@@ -59,6 +75,39 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         modal.style.display = "block";
+    }
+
+    function openDashboardModal(botId) {
+        const bot = bots.find(b => b.id === botId);
+        document.getElementById("dashboard-bot-name").textContent = bot.name;
+
+        const logContent = document.getElementById("bot-log-content");
+        const statusContent = document.getElementById("bot-status-content");
+        logContent.textContent = "";
+        statusContent.textContent = "Connecting...";
+
+        dashboardModal.style.display = "block";
+
+        const wsUrl = `ws://localhost:8000/ws/bots/${botId}/dashboard`;
+        dashboardWs = new WebSocket(wsUrl);
+
+        dashboardWs.onmessage = function(event) {
+            const message = JSON.parse(event.data);
+            if (message.type === 'log') {
+                logContent.textContent += message.data + '\n';
+            } else if (message.type === 'status') {
+                statusContent.textContent = JSON.stringify(message.data, null, 2);
+            }
+        };
+
+        dashboardWs.onclose = function() {
+            statusContent.textContent = "Connection closed.";
+        };
+
+        dashboardWs.onerror = function(error) {
+            statusContent.textContent = "An error occurred.";
+            console.error("WebSocket Error:", error);
+        };
     }
 
     // --- Main Page Logic ---
@@ -149,6 +198,11 @@ document.addEventListener("DOMContentLoaded", () => {
             stopButton.textContent = "Stop";
             stopButton.onclick = () => stopBot(bot.id);
             li.appendChild(stopButton);
+
+            const dashboardButton = document.createElement("button");
+            dashboardButton.textContent = "View Dashboard";
+            dashboardButton.onclick = () => openDashboardModal(bot.id);
+            li.appendChild(dashboardButton);
 
             ul.appendChild(li);
         });

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from .database import Base, engine
-from .routers import users, wallets, bots, trades, vaults, ws, market
+from .routers import users, wallets, bots, trades, vaults, ws, market, bot_ws
 
 def create_app():
     app = FastAPI()
@@ -17,6 +17,7 @@ def create_app():
     app.include_router(vaults.router, prefix="/vaults", tags=["vaults"])
     app.include_router(ws.router, tags=["websockets"])
     app.include_router(market.router, prefix="/market", tags=["market"])
+    app.include_router(bot_ws.router, tags=["bot_websockets"])
 
     @app.get("/")
     def read_root():

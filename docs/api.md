@@ -129,6 +129,71 @@ This document provides a detailed overview of the API endpoints available in the
     ]
     ```
 
+### GET /{wallet_id}/state
+
+-   **Description:** Returns the consolidated state of a given wallet, including open orders, positions, and spot balances.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Response:**
+    ```json
+    {
+      "open_orders": [],
+      "positions": [],
+      "spot_balances": []
+    }
+    ```
+
+### GET /subaccounts
+
+-   **Description:** Returns a list of subaccounts for the currently authenticated user.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Response:**
+    ```json
+    [
+      {
+        "name": "Subaccount 1",
+        "address": "0x123..."
+      }
+    ]
+    ```
+
+### GET /consolidated-state
+
+-   **Description:** Returns the consolidated state of a master account and all its subaccounts.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Request Body:**
+    ```json
+    {
+      "master_wallet_address": "0xabc..."
+    }
+    ```
+-   **Response:**
+    ```json
+    {
+      "open_orders": [],
+      "positions": [],
+      "spot_balances": []
+    }
+    ```
+
+### GET /export
+
+-   **Description:** Exports all wallets for the currently authenticated user to a JSON file.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Response:** A JSON file containing the exported wallets.
+
+### POST /import
+
+-   **Description:** Imports wallets from a JSON file.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Request Body:** `multipart/form-data` with a file field named `file`.
+-   **Response:**
+    ```json
+    {
+      "status": "success",
+      "message": "Wallets imported successfully."
+    }
+    ```
+
 ## Trades
 
 ### POST /
@@ -168,6 +233,82 @@ This document provides a detailed overview of the API endpoints available in the
       }
     }
     ```
+
+### PUT /{order_id}
+
+-   **Description:** Modifies an existing order.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Request Body:**
+    ```json
+    {
+      "wallet_id": 1,
+      "symbol": "BTC",
+      "is_buy": true,
+      "sz": 0.2,
+      "limit_px": 51000,
+      "order_type": {
+        "limit": {
+          "tif": "Gtc"
+        }
+      }
+    }
+    ```
+-   **Response:**
+    ```json
+    {
+      "status": "ok"
+    }
+    ```
+
+### POST /spot
+
+-   **Description:** Places a new spot trade.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Request Body:**
+    ```json
+    {
+      "wallet_id": 1,
+      "symbol": "BTC",
+      "is_buy": true,
+      "sz": 0.1,
+      "limit_px": 50000,
+      "order_type": {
+        "limit": {
+          "tif": "Gtc"
+        }
+      }
+    }
+    ```
+-   **Response:**
+    ```json
+    {
+      "status": "ok"
+    }
+    ```
+
+### GET /order-history
+
+-   **Description:** Returns the order history for a given wallet.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Query Parameters:**
+    -   `wallet_address`: The address of the wallet.
+-   **Response:** A list of orders.
+
+### GET /trade-history
+
+-   **Description:** Returns the trade history for a given wallet.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Query Parameters:**
+    -   `wallet_address`: The address of the wallet.
+-   **Response:** A list of trades.
+
+### GET /portfolio-history
+
+-   **Description:** Returns the portfolio history for a given wallet.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Query Parameters:**
+    -   `wallet_address`: The address of the wallet.
+-   **Response:** A list of portfolio value snapshots.
 
 ## Bots
 
@@ -257,6 +398,43 @@ This document provides a detailed overview of the API endpoints available in the
     ```
     Hello, World!
     ```
+
+### WS /ws/bots/{bot_id}/dashboard
+
+-   **Description:** WebSocket endpoint for the bot dashboard. Streams real-time logs and status updates.
+
+## Market
+
+### GET /funding-history
+
+-   **Description:** Returns the funding rate history for a given symbol.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Query Parameters:**
+    -   `symbol`: The trading symbol (e.g., "BTC").
+-   **Response:** A list of funding rate snapshots.
+
+### GET /candles
+
+-   **Description:** Returns candlestick data for a given symbol and interval.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Query Parameters:**
+    -   `symbol`: The trading symbol (e.g., "BTC").
+    -   `interval`: The candle interval (e.g., "1h").
+-   **Response:** A list of candles.
+
+### GET /depth
+
+-   **Description:** Returns the order book depth for a given symbol.
+-   **Authentication:** Requires a valid JWT in the `Authorization` header.
+-   **Query Parameters:**
+    -   `symbol`: The trading symbol (e.g., "BTC").
+-   **Response:** The L2 order book depth.
+
+## WebSockets
+
+### WS /ws/updates/{wallet_address}
+
+-   **Description:** WebSocket endpoint for real-time updates for a given wallet.
 
 ## Vaults
 

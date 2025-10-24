@@ -5,6 +5,7 @@ import threading
 import asyncio
 import websockets
 import os
+import time
 from .hyperliquid_api import HyperliquidAPI
 from hyperliquid.exchange import Exchange
 from hyperliquid.utils import constants
@@ -65,10 +66,26 @@ class BotTradingAPI:
         return self.api.get_positions(user_address)
 
 
+def dump_status(capital_manager, status_file):
+    while True:
+        status = {
+            "timestamp": time.time(),
+            "available_capital": capital_manager.available_capital,
+            "positions": capital_manager.positions
+        }
+        with open(status_file, 'w') as f_status:
+            json.dump(status, f_status)
+        time.sleep(5)
+
 def run_bot_process(bot_id: int, bot_code: str, runtime_inputs: dict, wallet_private_key: str, capital_allocation: float):
     log_dir = "bot_logs"
     os.makedirs(log_dir, exist_ok=True)
     log_file = os.path.join(log_dir, f"bot_{bot_id}.log")
+
+    status_dir = "bot_status"
+    os.makedirs(status_dir, exist_ok=True)
+    status_file = os.path.join(status_dir, f"bot_{bot_id}.json")
+
 
     with open(log_file, "w") as f:
         sys.stdout = f
@@ -81,6 +98,10 @@ def run_bot_process(bot_id: int, bot_code: str, runtime_inputs: dict, wallet_pri
             ws_listener = WebSocketListener(account.address, capital_manager)
             ws_thread = threading.Thread(target=ws_listener.run, daemon=True)
             ws_thread.start()
+
+            # Start the status dumper thread
+            status_thread = threading.Thread(target=dump_status, args=(capital_manager, status_file), daemon=True)
+            status_thread.start()
 
             trading_api = BotTradingAPI(wallet_private_key, capital_manager)
 

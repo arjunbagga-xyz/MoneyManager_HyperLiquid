@@ -11,12 +11,18 @@ This guide provides a step-by-step walkthrough of how to use the trading platfor
 
 1.  **Create a Wallet:** Navigate to the "Dashboard" and click the "Add Wallet" button. Enter a name for your wallet and provide the private key.
 2.  **View Wallet Details:** Once you have created a wallet, you can view its balance, open orders, and positions on the dashboard.
+-   **Multi-Account Management:** The dashboard displays a hierarchical view of your master accounts and subaccounts. You can click on a master account to view a consolidated summary of all its subaccounts, or click on a specific subaccount to view its individual details.
+-   **Historical Data:** The dashboard also provides tabs for viewing your order history, trade history, and portfolio value over time.
 
 ## Trading
 
 1.  **Navigate to the Trading Page:** Click on the "Trading" link in the navigation bar.
 2.  **Select a Wallet:** Choose the wallet you want to use for trading from the dropdown menu.
 3.  **Place an Order:** Fill out the order form with the desired symbol, side, size, and price, then click the "Place Order" button.
+4.  **Advanced Orders:** The trading page supports advanced order types, such as limit, market, and stop-limit orders.
+5.  **Spot Trading:** You can switch between perpetual and spot trading using the toggle on the trading page.
+6.  **TradingView Chart:** The trading page includes a TradingView chart for advanced market analysis.
+7.  **Depth Chart:** A real-time depth chart is displayed next to the price chart, showing the current order book.
 
 ## Bot Lab
 
@@ -34,8 +40,8 @@ This guide provides a step-by-step walkthrough of how to use the trading platfor
 4.  **Stop a Bot:**
     -   Find the running bot in the list.
     -   Click the "Stop" button.
-5.  **View Bot Logs:**
-    -   Click the "Logs" button next to the bot to view its logs.
+5.  **View Bot Dashboard:**
+    -   Click the "View Dashboard" button next to the bot to open a real-time dashboard. The dashboard displays the bot's current status, including its available capital and open positions, as well as a live stream of its logs.
 
 ## Vaults
 
