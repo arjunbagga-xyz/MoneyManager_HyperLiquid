@@ -66,9 +66,9 @@ if (-not (Test-Path "backend\.env")) {
     Write-Host "Creating .env file with default values..."
     $ENCRYPTION_KEY = python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
     @"
-SECRET_KEY=a-secret-key
-ENCRYPTION_KEY=$ENCRYPTION_KEY
-SQLALCHEMY_DATABASE_URL=sqlite:///./test.db
+secret_key=a-secret-key
+encryption_key=$ENCRYPTION_KEY
+sqlalchemy_database_url=sqlite:///./test.db
 "@ | Out-File -Encoding utf8 backend\.env
 } else {
     Write-Host ".env file already exists."

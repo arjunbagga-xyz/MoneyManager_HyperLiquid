@@ -54,9 +54,9 @@ if [ ! -f "backend/.env" ]; then
     echo "Creating .env file with default values..."
     ENCRYPTION_KEY=$(python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
     cat > backend/.env << EOF
-SECRET_KEY=a-secret-key
-ENCRYPTION_KEY=${ENCRYPTION_KEY}
-SQLALCHEMY_DATABASE_URL=sqlite:///./test.db
+secret_key=a-secret-key
+encryption_key=${ENCRYPTION_KEY}
+sqlalchemy_database_url=sqlite:///./test.db
 EOF
 else
     echo ".env file already exists."
