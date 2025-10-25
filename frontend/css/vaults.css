@@ -25,9 +25,6 @@
 }
 
 .vault-card {
-    background-color: var(--background-light);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
     display: flex;
     flex-direction: column;
     transition: box-shadow 0.2s ease, transform 0.2s ease;
@@ -70,7 +67,6 @@
 }
 .vault-stats strong {
     display: block;
-    color: var(--text-primary);
     font-size: 1.2rem;
 }
 
@@ -91,17 +87,8 @@
 }
 .action-forms .action-form input {
     flex-grow: 1;
-    background-color: var(--background-light);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    padding: 0.7rem;
-    color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
 }
-.action-forms .action-form input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
+
 .action-forms .action-form button {
     white-space: nowrap;
 }

@@ -13,7 +13,6 @@
 .account-header h1 {
     font-size: 2.5rem;
     font-weight: 700;
-    color: var(--text-primary);
     margin-bottom: 0.5rem;
 }
 
@@ -52,7 +51,6 @@
 .profile-card h3 {
     margin: 0;
     font-size: 1.25rem;
-    color: var(--text-primary);
 }
 
 .profile-card p {
@@ -90,14 +88,6 @@
     flex-grow: 1;
 }
 
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
-
 .card {
     background-color: var(--background-light);
     border: 1px solid var(--border-color);
@@ -109,7 +99,6 @@
 .card h3 {
     margin-top: 0;
     margin-bottom: 1.5rem;
-    color: var(--text-primary);
     font-size: 1.4rem;
 }
 
@@ -118,8 +107,6 @@
     margin-bottom: 1rem;
 }
 
-
-/* Forms */
 .form-grid {
     display: grid;
     gap: 1rem;
@@ -130,40 +117,8 @@
     flex-direction: column;
 }
 
-.form-group label {
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-}
-
-.form-group input {
-    background-color: var(--background-dark);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    padding: 0.7rem;
-    color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
-    font-size: 1rem;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-
-/* Buttons */
 .button-primary {
-    background-color: var(--primary-color);
-    color: #fff;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
     justify-self: start;
-    transition: background-color 0.2s ease;
 }
 
 .button-primary:hover {

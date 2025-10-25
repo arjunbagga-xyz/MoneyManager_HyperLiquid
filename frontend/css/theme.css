@@ -1,0 +1,224 @@
+/* Global Theme for Jupiter Trading Platform */
+/* Cyber Professional Theme */
+
+:root {
+    --background-dark: #121212;
+    --background-light: #1E1E1E;
+    --background-hover: #2A2A2A;
+    --border-color: #333333;
+
+    --text-primary: #FFFFFF;
+    --text-secondary: #B0B0B0;
+
+    --primary-color: #007BFF; /* Electric Blue */
+    --accent-color: #FF00FF; /* Neon Magenta */
+    --success-color: #28A745;
+    --error-color: #DC3545;
+
+    --font-primary: 'Inter', sans-serif;
+    --font-mono: 'Roboto Mono', monospace;
+}
+
+body {
+    background-color: var(--background-dark);
+    color: var(--text-primary);
+    font-family: var(--font-primary);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* General Component Styles */
+.widget {
+    background-color: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.widget-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.widget-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.widget-content {
+    padding: 1.5rem;
+    flex-grow: 1;
+    overflow: auto;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+}
+
+.tab-link {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.tab-link:hover {
+    color: var(--text-primary);
+}
+
+.tab-link.active {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.form-group input {
+    width: 100%;
+    background-color: var(--background-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.7rem;
+    color: var(--text-primary);
+    font-family: var(--font-primary);
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Buttons */
+.button-primary {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.button-primary:hover {
+    opacity: 0.9;
+}
+
+.button-danger {
+    background-color: var(--error-color);
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+.button-danger:hover {
+    opacity: 0.9;
+}
+
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+    height: 60px;
+    background-color: var(--background-light);
+    border-bottom: 1px solid var(--border-color);
+}
+.navbar-left, .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+.logo {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+.nav-links a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+.nav-links a:hover, .nav-links a.active {
+    color: var(--text-primary);
+}
+.wallet-selector {
+    background-color: var(--background-dark);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+}
+.logout-button {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Data Table */
+.data-table-container {
+    overflow-y: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 0.8rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+}
+th {
+    font-weight: 600;
+    color: var(--text-secondary);
+    background-color: var(--background-dark);
+}
+tbody tr:hover {
+    background-color: var(--background-hover);
+}

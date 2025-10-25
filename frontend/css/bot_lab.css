@@ -21,8 +21,6 @@
 .main-tabs {
     margin-bottom: 1.5rem;
 }
-.tab-content { display: none; }
-.tab-content.active { display: block; }
 
 /* Bot Library */
 .bot-library-grid {
@@ -30,32 +28,6 @@
     grid-template-columns: 350px 1fr;
     gap: 1.5rem;
     height: calc(100vh - 280px); /* Adjust based on header/footer height */
-}
-
-.widget {
-    background-color: var(--background-light);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-}
-
-.widget-header {
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.widget-header h2 {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-}
-.widget-content {
-    padding: 1.5rem;
-    flex-grow: 1;
-    overflow: auto;
 }
 
 #bot-list {
@@ -135,8 +107,3 @@
     padding: 0.3rem 0.8rem;
     font-size: 0.8rem;
 }
-.tab-link {
-    background: none; border: none; color: var(--text-secondary); padding: 0.8rem 1rem;
-    cursor: pointer; font-size: 1rem; font-weight: 500; border-bottom: 2px solid transparent;
-}
-.tab-link.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
