@@ -12,9 +12,9 @@ def get_vault_meta(hl_api: HyperliquidAPI = Depends(HyperliquidAPI)):
 
 @router.post("/deposit")
 def vault_deposit(
-    deposit_request: schemas.VaultDepositRequest, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+    deposit_request: schemas.VaultDepositRequestByAddress, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
 ):
-    wallet = crud.get_wallet(db, wallet_id=deposit_request.wallet_id, user_id=current_user.id)
+    wallet = crud.get_wallet_by_address(db, wallet_address=deposit_request.wallet_address, user_id=current_user.id)
     if not wallet:
         raise HTTPException(status_code=404, detail="Wallet not found")
 
@@ -23,9 +23,9 @@ def vault_deposit(
 
 @router.post("/withdraw")
 def vault_withdraw(
-    withdraw_request: schemas.VaultWithdrawRequest, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+    withdraw_request: schemas.VaultWithdrawRequestByAddress, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
 ):
-    wallet = crud.get_wallet(db, wallet_id=withdraw_request.wallet_id, user_id=current_user.id)
+    wallet = crud.get_wallet_by_address(db, wallet_address=withdraw_request.wallet_address, user_id=current_user.id)
     if not wallet:
         raise HTTPException(status_code=404, detail="Wallet not found")
 

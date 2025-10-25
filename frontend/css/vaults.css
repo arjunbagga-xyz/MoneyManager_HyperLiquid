@@ -1,0 +1,107 @@
+/* Vaults Page Specific Styles */
+.vaults-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.vaults-header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+.vaults-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+.vaults-header p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+.vaults-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.vault-card {
+    background-color: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.vault-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.card-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.card-header .vault-name {
+    margin: 0;
+    font-size: 1.3rem;
+}
+.card-header .vault-apy {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--success-color);
+}
+
+.card-body {
+    padding: 1.5rem;
+    flex-grow: 1;
+}
+.card-body .vault-description {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+.vault-stats {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Roboto Mono', monospace;
+}
+.vault-stats span {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+.vault-stats strong {
+    display: block;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+}
+
+.card-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--background-dark);
+}
+.action-toggle {
+    display: flex;
+    gap: 1rem;
+}
+.action-forms .action-form {
+    display: none; /* Hidden by default */
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+.action-forms .action-form input {
+    flex-grow: 1;
+    background-color: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.7rem;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+}
+.action-forms .action-form input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+.action-forms .action-form button {
+    white-space: nowrap;
+}

@@ -26,6 +26,12 @@ def get_wallets(db: Session, user_id: int, skip: int = 0, limit: int = 100):
         wallet.private_key = f.decrypt(wallet.private_key.encode()).decode()
     return wallets
 
+def get_wallet_by_address(db: Session, wallet_address: str, user_id: int):
+    wallet = db.query(models.Wallet).filter(models.Wallet.address == wallet_address, models.Wallet.owner_id == user_id).first()
+    if wallet:
+        wallet.private_key = f.decrypt(wallet.private_key.encode()).decode()
+    return wallet
+
 
 def get_wallet(db: Session, wallet_id: int, user_id: int):
     wallet = db.query(models.Wallet).filter(models.Wallet.id == wallet_id, models.Wallet.owner_id == user_id).first()
@@ -34,18 +40,24 @@ def get_wallet(db: Session, wallet_id: int, user_id: int):
     return wallet
 
 
-def create_wallet(db: Session, wallet: schemas.WalletCreate, user_id: int):
-    encrypted_private_key = f.encrypt(wallet.private_key.encode()).decode()
+from eth_account import Account
+
+def create_wallet(db: Session, name: str, user_id: int):
+    account = Account.create()
+    private_key = account.key.hex()
+    address = account.address
+
+    encrypted_private_key = f.encrypt(private_key.encode()).decode()
     db_wallet = models.Wallet(
-        name=wallet.name,
-        address=wallet.address,
+        name=name,
+        address=address,
         private_key=encrypted_private_key,
         owner_id=user_id,
     )
     db.add(db_wallet)
     db.commit()
     db.refresh(db_wallet)
-    db_wallet.private_key = wallet.private_key
+    db_wallet.private_key = private_key # Return the unencrypted key for immediate use
     return db_wallet
 
 
@@ -63,3 +75,18 @@ def create_bot(db: Session, bot: schemas.BotCreate, user_id: int):
 
 def get_bot(db: Session, bot_id: int, user_id: int):
     return db.query(models.Bot).filter(models.Bot.id == bot_id, models.Bot.owner_id == user_id).first()
+
+
+def update_bot(db: Session, bot_id: int, bot_update: schemas.BotUpdate, user_id: int):
+    db_bot = get_bot(db, bot_id=bot_id, user_id=user_id)
+    if not db_bot:
+        return None
+
+    update_data = bot_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_bot, key, value)
+
+    db.add(db_bot)
+    db.commit()
+    db.refresh(db_bot)
+    return db_bot

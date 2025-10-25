@@ -5,3 +5,15 @@ __pycache__/
 .env
 test.db
 uvicorn.log
+
+# Node
+node_modules/
+package-lock.json
+
+# Agent scratchpad
+jules-scratch/
+
+# Playwright
+storageState.json
+playwright-report/
+test-results/

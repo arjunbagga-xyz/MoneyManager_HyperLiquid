@@ -7,7 +7,7 @@ from . import crud, models, schemas, database
 from .config import settings
 from .passwords import verify_password, get_password_hash
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/token")
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()

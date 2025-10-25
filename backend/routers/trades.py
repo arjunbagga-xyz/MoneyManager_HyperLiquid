@@ -9,9 +9,9 @@ router = APIRouter()
 
 @router.post("/")
 def place_order(
-    order: schemas.OrderRequest, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+    order: schemas.OrderRequestByAddress, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
 ):
-    wallet = crud.get_wallet(db, wallet_id=order.wallet_id, user_id=current_user.id)
+    wallet = crud.get_wallet_by_address(db, wallet_address=order.wallet_address, user_id=current_user.id)
     if not wallet:
         raise HTTPException(status_code=404, detail="Wallet not found")
 

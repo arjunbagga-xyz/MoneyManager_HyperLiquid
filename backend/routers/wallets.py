@@ -9,9 +9,9 @@ router = APIRouter()
 
 @router.post("/", response_model=schemas.Wallet)
 def create_wallet(
-    wallet: schemas.WalletCreate, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+    wallet_request: schemas.WalletCreateRequest, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
 ):
-    return crud.create_wallet(db=db, wallet=wallet, user_id=current_user.id)
+    return crud.create_wallet(db=db, name=wallet_request.name, user_id=current_user.id)
 
 @router.get("/", response_model=list[schemas.Wallet])
 def read_wallets(

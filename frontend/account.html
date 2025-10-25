@@ -4,72 +4,129 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trading Platform - Account</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/account.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <h1>Trading Platform</h1>
-        <nav>
-            <ul>
-                <li><a href="index.html">Dashboard</a></li>
-                <li><a href="trading.html">Trading</a></li>
-                <li><a href="vaults.html">Vaults</a></li>
-                <li><a href="bot_lab.html">Bot Lab</a></li>
-                <li><a href="account.html" class="active">Account</a></li>
-            </ul>
-        </nav>
+    <header class="navbar">
+        <div class="navbar-left">
+            <a href="index.html" class="logo">Jupiter</a>
+            <nav class="nav-links">
+                <a href="index.html">Dashboard</a>
+                <a href="trading.html">Trading</a>
+                <a href="vaults.html">Vaults</a>
+                <a href="bot_lab.html">Bot Lab</a>
+                <a href="account.html" class="active">Account</a>
+            </nav>
+        </div>
+        <div class="navbar-right">
+            <div class="wallet-selector-container">
+                <select id="wallet-selector" class="wallet-selector"></select>
+            </div>
+            <button id="logout-button" class="logout-button">Logout</button>
+        </div>
     </header>
 
-    <main>
-        <h2>Account Management</h2>
+    <main class="account-container">
+        <div class="account-header">
+            <h1>Account Settings</h1>
+            <p>Manage your profile, security, and wallet settings.</p>
+        </div>
 
-        <section id="auth-section">
-            <div id="register-form-container">
-                <h3>Register</h3>
-                <form id="register-form">
-                    <label for="register-username">Username:</label>
-                    <input type="text" id="register-username" name="username" required>
-                    <br>
-                    <label for="register-password">Password:</label>
-                    <input type="password" id="register-password" name="password" required>
-                    <br>
-                    <button type="submit">Register</button>
-                </form>
+        <div class="account-content">
+            <div class="account-sidebar">
+                <div class="profile-card">
+                    <img src="https://via.placeholder.com/80" alt="User Avatar" class="avatar">
+                    <h3 id="username-display">Username</h3>
+                    <p>Trader</p>
+                </div>
+                <nav class="account-nav">
+                    <a href="#profile" class="active" data-tab="profile">
+                        <svg><!-- icon --></svg> Profile
+                    </a>
+                    <a href="#security" data-tab="security">
+                        <svg><!-- icon --></svg> Security
+                    </a>
+                    <a href="#api-keys" data-tab="api-keys">
+                        <svg><!-- icon --></svg> API Keys
+                    </a>
+                    <a href="#wallets" data-tab="wallets">
+                        <svg><!-- icon --></svg> Wallet Management
+                    </a>
+                </nav>
             </div>
 
-            <hr>
+            <div class="account-main">
+                <!-- Profile Section -->
+                <div id="profile" class="tab-content active">
+                    <h2>Profile Information</h2>
+                    <p>This section will contain user profile details. (Coming Soon)</p>
+                </div>
 
-            <div id="login-form-container">
-                <h3>Login</h3>
-                <form id="login-form">
-                    <label for="login-username">Username:</label>
-                    <input type="text" id="login-username" name="username" required>
-                    <br>
-                    <label for="login-password">Password:</label>
-                    <input type="password" id="login-password" name="password" required>
-                    <br>
-                    <button type="submit">Login</button>
-                </form>
+                <!-- Security Section -->
+                <div id="security" class="tab-content">
+                    <h2>Security</h2>
+                    <div class="card">
+                        <h3>Change Password</h3>
+                        <form id="change-password-form" class="form-grid">
+                            <div class="form-group">
+                                <label for="current-password">Current Password</label>
+                                <input type="password" id="current-password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-password">New Password</label>
+                                <input type="password" id="new-password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm-password">Confirm New Password</label>
+                                <input type="password" id="confirm-password" required>
+                            </div>
+                            <button type="submit" class="button-primary">Update Password</button>
+                        </form>
+                        <div id="password-message" class="message-container"></div>
+                    </div>
+                </div>
+
+                <!-- API Keys Section -->
+                <div id="api-keys" class="tab-content">
+                    <h2>API Key Management</h2>
+                     <div class="card">
+                        <p>This feature is coming soon. You will be able to generate and manage API keys for programmatic access.</p>
+                    </div>
+                </div>
+
+                <!-- Wallet Management Section -->
+                <div id="wallets" class="tab-content">
+                    <h2>Wallet Management</h2>
+                    <div class="card">
+                        <h3>Export Wallets</h3>
+                        <p>Download a JSON file of your wallets. Keep this file safe.</p>
+                        <button id="export-wallets-button" class="button-secondary">Export Wallets</button>
+                    </div>
+                    <div class="card">
+                        <h3>Import Wallets</h3>
+                        <p>Upload a previously exported JSON file to restore your wallets.</p>
+                        <input type="file" id="import-wallets-input" accept=".json" style="display: none;">
+                        <button id="import-wallets-button" class="button-secondary">Import Wallets</button>
+                    </div>
+                     <div class="card">
+                        <h3>Create New Wallet</h3>
+                        <p>Generate a new master wallet for your account.</p>
+                        <form id="create-wallet-form">
+                            <div class="form-group">
+                                <label for="wallet-name">Wallet Name</label>
+                                <input type="text" id="wallet-name" required>
+                            </div>
+                            <button type="submit" class="button-primary">Create Wallet</button>
+                        </form>
+                    </div>
+                </div>
             </div>
-
-            <hr>
-
-            <div id="logout-container">
-                <h3>Logout</h3>
-                <button id="logout-button">Logout</button>
-            </div>
-        </section>
-
-        <div id="auth-message"></div>
-
-        <section id="wallet-management">
-            <h3>Wallet Management</h3>
-            <button id="export-wallets-button">Export Wallets</button>
-            <input type="file" id="import-wallets-input" accept=".json" style="display: none;">
-            <button id="import-wallets-button">Import Wallets</button>
-        </section>
+        </div>
     </main>
 
-    <script src="js/auth.js"></script>
+    <script src="js/shared.js"></script>
+    <script src="js/account.js"></script>
 </body>
 </html>

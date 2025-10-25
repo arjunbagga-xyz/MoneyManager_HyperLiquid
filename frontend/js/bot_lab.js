@@ -1,267 +1,163 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const createBotForm = document.getElementById("create-bot-form");
-    const botMessage = document.getElementById("bot-message");
-    const botList = document.getElementById("bot-list");
     const token = localStorage.getItem("jwt");
-
-    const modal = document.getElementById("run-bot-modal");
-    const runBotForm = document.getElementById("run-bot-form");
-    const runBotMessage = document.getElementById("run-bot-message");
-    const closeModal = document.getElementsByClassName("close-button")[0];
-    let activeWalletAddress = getActiveWallet();
-
-    document.addEventListener('activeWalletChanged', (event) => {
-        activeWalletAddress = event.detail.walletAddress;
-    });
-
-    const dashboardModal = document.getElementById("bot-dashboard-modal");
-    const closeDashboardModal = document.getElementsByClassName("close-dashboard-button")[0];
-    let dashboardWs = null;
-
-    let bots = [];
-    let wallets = [];
-    let currentBotId = null;
-
     if (!token) {
-        window.location.href = "account.html";
+        window.location.href = "login.html";
         return;
     }
 
-    // --- Modal Logic ---
-    closeModal.onclick = function() {
-        modal.style.display = "none";
-    }
-    closeDashboardModal.onclick = function() {
-        dashboardModal.style.display = "none";
-        if (dashboardWs) {
-            dashboardWs.close();
-        }
-    }
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-        if (event.target == dashboardModal) {
-            dashboardModal.style.display = "none";
-            if (dashboardWs) {
-                dashboardWs.close();
-            }
-        }
-    }
+    // --- STATE ---
+    let bots = [];
+    let activeBotId = null;
+    let activeWalletAddress = null;
 
-    async function openRunBotModal(botId) {
-        currentBotId = botId;
-        const bot = bots.find(b => b.id === botId);
-        document.getElementById("run-bot-name").textContent = bot.name;
-
-        const runtimeInputsContainer = document.getElementById("runtime-inputs");
-        runtimeInputsContainer.innerHTML = "";
-        if (bot.input_schema) {
-            for (const key in bot.input_schema) {
-                const label = document.createElement("label");
-                label.textContent = `${key}:`;
-                const input = document.createElement("input");
-                input.type = "text";
-                input.id = `runtime-input-${key}`;
-                input.name = key;
-                runtimeInputsContainer.appendChild(label);
-                runtimeInputsContainer.appendChild(input);
-                runtimeInputsContainer.appendChild(document.createElement("br"));
-            }
-        }
-
-        modal.style.display = "block";
-    }
-
-    function openDashboardModal(botId) {
-        const bot = bots.find(b => b.id === botId);
-        document.getElementById("dashboard-bot-name").textContent = bot.name;
-
-        const logContent = document.getElementById("bot-log-content");
-        const statusContent = document.getElementById("bot-status-content");
-        logContent.textContent = "";
-        statusContent.textContent = "Connecting...";
-
-        dashboardModal.style.display = "block";
-
-        const wsUrl = `ws://localhost:8000/ws/bots/${botId}/dashboard`;
-        dashboardWs = new WebSocket(wsUrl);
-
-        dashboardWs.onmessage = function(event) {
-            const message = JSON.parse(event.data);
-            if (message.type === 'log') {
-                logContent.textContent += message.data + '\n';
-            } else if (message.type === 'status') {
-                statusContent.textContent = JSON.stringify(message.data, null, 2);
-            }
-        };
-
-        dashboardWs.onclose = function() {
-            statusContent.textContent = "Connection closed.";
-        };
-
-        dashboardWs.onerror = function(error) {
-            statusContent.textContent = "An error occurred.";
-            console.error("WebSocket Error:", error);
-        };
-    }
-
-    // --- Main Page Logic ---
-    fetchWallets();
-    fetchBots();
-
-    createBotForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const name = document.getElementById("bot-name").value;
-        const code = document.getElementById("bot-code").value;
-        const schemaText = document.getElementById("bot-schema").value;
-        let input_schema = null;
-
-        try {
-            if (schemaText) {
-                input_schema = JSON.parse(schemaText);
-            }
-
-            const response = await fetch("http://localhost:8000/bots/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify({ name, code, input_schema }),
-            });
-
-            if (response.ok) {
-                botMessage.textContent = "Bot saved successfully!";
-                botMessage.style.color = "green";
-                createBotForm.reset();
-                fetchBots();
-            } else {
-                const error = await response.json();
-                botMessage.textContent = `Error saving bot: ${error.detail}`;
-                botMessage.style.color = "red";
-            }
-        } catch (error) {
-            botMessage.textContent = "An error occurred. Please check if the schema is valid JSON.";
-            botMessage.style.color = "red";
-        }
+    // --- CODEMIRROR EDITORS ---
+    const codeEditor = CodeMirror.fromTextArea(document.getElementById('bot-code'), {
+        mode: 'python',
+        theme: 'darcula',
+        lineNumbers: true,
+        lineWrapping: true,
+    });
+    const schemaEditor = CodeMirror.fromTextArea(document.getElementById('bot-schema'), {
+        mode: { name: 'javascript', json: true },
+        theme: 'darcula',
+        lineNumbers: true,
     });
 
-    async function fetchWallets() {
-        try {
-            const response = await fetch("http://localhost:8000/wallets/", {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            if (!response.ok) throw new Error("Failed to fetch wallets");
-            wallets = await response.json();
-        } catch (error) {
-            console.error("Error fetching wallets:", error);
-        }
+    // --- ELEMENT SELECTORS ---
+    const botList = document.getElementById('bot-list');
+    const editorForm = document.getElementById('bot-editor-form');
+    const newBotBtn = document.getElementById('new-bot-btn');
+    const editorTitle = document.getElementById('editor-title');
+    const botNameInput = document.getElementById('bot-name');
+    const botIdInput = document.getElementById('bot-id');
+
+    // --- INITIALIZATION ---
+    function initialize() {
+        initializeTabs();
+        fetchBots();
+
+        document.addEventListener('activeWalletChanged', e => activeWalletAddress = e.detail.walletAddress);
+
+        newBotBtn.addEventListener('click', clearEditorAndSelect);
+        editorForm.addEventListener('submit', handleSaveBot);
     }
 
+    function initializeTabs() {
+        const tabs = document.querySelectorAll('.main-tabs .tab-link');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+    }
+
+    // --- BOT LIBRARY LOGIC ---
     async function fetchBots() {
         try {
-            const response = await fetch("http://localhost:8000/bots/", {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            if (!response.ok) throw new Error("Failed to fetch bots");
-            const botsData = await response.json();
-            displayBots(botsData);
+            const response = await fetch("/bots/", { headers: { "Authorization": `Bearer ${token}` } });
+            bots = await response.json();
+            renderBotList();
         } catch (error) {
-            botList.innerHTML = "<p>Could not load bots.</p>";
+            console.error("Error fetching bots:", error);
         }
     }
 
-    function displayBots(botsData) {
-        bots = botsData;
-        botList.innerHTML = "";
+    function renderBotList() {
+        botList.innerHTML = '';
         if (bots.length === 0) {
-            botList.innerHTML = "<p>No bots created yet.</p>";
-            return;
+            botList.innerHTML = '<p>No bots created yet.</p>';
+        } else {
+            bots.forEach(bot => {
+                const item = document.createElement('div');
+                item.className = 'bot-list-item';
+                item.textContent = bot.name;
+                item.dataset.botId = bot.id;
+                item.addEventListener('click', () => selectBot(bot.id));
+                botList.appendChild(item);
+            });
         }
-
-        const ul = document.createElement("ul");
-        bots.forEach(bot => {
-            const li = document.createElement("li");
-            li.textContent = bot.name;
-
-            const runButton = document.createElement("button");
-            runButton.textContent = "Run";
-            runButton.onclick = () => openRunBotModal(bot.id);
-            li.appendChild(runButton);
-
-            const stopButton = document.createElement("button");
-            stopButton.textContent = "Stop";
-            stopButton.onclick = () => stopBot(bot.id);
-            li.appendChild(stopButton);
-
-            const dashboardButton = document.createElement("button");
-            dashboardButton.textContent = "View Dashboard";
-            dashboardButton.onclick = () => openDashboardModal(bot.id);
-            li.appendChild(dashboardButton);
-
-            ul.appendChild(li);
-        });
-        botList.appendChild(ul);
     }
 
-    runBotForm.addEventListener("submit", async (e) => {
+    function selectBot(botId) {
+        activeBotId = botId;
+        const bot = bots.find(b => b.id === botId);
+
+        // Update active class in list
+        document.querySelectorAll('.bot-list-item').forEach(item => {
+            item.classList.toggle('active', parseInt(item.dataset.botId) === botId);
+        });
+
+        // Populate editor
+        editorTitle.textContent = `Edit: ${bot.name}`;
+        botIdInput.value = bot.id;
+        botNameInput.value = bot.name;
+        codeEditor.setValue(bot.code || '');
+        schemaEditor.setValue(bot.input_schema ? JSON.stringify(bot.input_schema, null, 2) : '');
+
+        // Refresh editors to fix any display glitches
+        setTimeout(() => {
+            codeEditor.refresh();
+            schemaEditor.refresh();
+        }, 1);
+    }
+
+    function clearEditorAndSelect() {
+        activeBotId = null;
+        document.querySelectorAll('.bot-list-item').forEach(item => item.classList.remove('active'));
+
+        editorTitle.textContent = "Create New Bot";
+        botIdInput.value = '';
+        botNameInput.value = '';
+        codeEditor.setValue('');
+        schemaEditor.setValue('');
+    }
+
+    async function handleSaveBot(e) {
         e.preventDefault();
 
-        const wallet_address = activeWalletAddress;
-        if (!wallet_address) {
-            alert("Please select a wallet first.");
+        const botData = {
+            name: botNameInput.value,
+            code: codeEditor.getValue(),
+            input_schema: null,
+        };
+
+        try {
+            const schemaText = schemaEditor.getValue();
+            if (schemaText.trim()) {
+                botData.input_schema = JSON.parse(schemaText);
+            }
+        } catch (error) {
+            alert("Invalid JSON in input schema.");
             return;
         }
-        const capital_allocation = parseFloat(document.getElementById("capital-allocation").value);
 
-        const runtime_inputs = {};
-        const bot = bots.find(b => b.id === currentBotId);
-        if (bot.input_schema) {
-            for (const key in bot.input_schema) {
-                runtime_inputs[key] = document.getElementById(`runtime-input-${key}`).value;
-            }
-        }
+        const method = activeBotId ? "PUT" : "POST";
+        const url = activeBotId ? `/bots/${activeBotId}` : "/bots/";
 
         try {
-            const response = await fetch(`http://localhost:8000/bots/${currentBotId}/run`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify({ wallet_id, capital_allocation, runtime_inputs }),
+            const response = await fetch(url, {
+                method: method,
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                body: JSON.stringify(botData),
             });
 
             if (response.ok) {
-                runBotMessage.textContent = "Bot started successfully!";
-                runBotMessage.style.color = "green";
-                setTimeout(() => modal.style.display = "none", 1000);
+                alert("Bot saved successfully!");
+                fetchBots(); // Refresh the list
             } else {
                 const error = await response.json();
-                runBotMessage.textContent = `Error: ${error.detail}`;
-                runBotMessage.style.color = "red";
+                alert(`Error saving bot: ${error.detail}`);
             }
         } catch (error) {
-            runBotMessage.textContent = "An error occurred.";
-            runBotMessage.style.color = "red";
-        }
-    });
-
-    async function stopBot(botId) {
-        try {
-            const response = await fetch(`http://localhost:8000/bots/${botId}/stop`, {
-                method: "POST",
-                headers: { "Authorization": `Bearer ${token}` },
-            });
-            if (response.ok) {
-                alert("Bot stopped successfully!");
-            } else {
-                const error = await response.json();
-                alert(`Error stopping bot: ${error.detail}`);
-            }
-        } catch (error) {
-            alert("An error occurred while stopping the bot.");
+            alert("An unexpected error occurred while saving the bot.");
         }
     }
+
+    // --- RUNNING BOTS LOGIC (PLACEHOLDER) ---
+    // This will be implemented in a future step.
+
+    initialize();
 });

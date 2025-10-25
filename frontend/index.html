@@ -4,103 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trading Platform - Dashboard</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <h1>Trading Platform</h1>
-        <nav>
-            <ul>
-                <li><a href="index.html" class="active">Dashboard</a></li>
-                <li><a href="trading.html">Trading</a></li>
-                <li><a href="bot_lab.html">Bot Lab</a></li>
-                <li><a href="vaults.html">Vaults</a></li>
-                <li><a href="account.html">Account</a></li>
-                <li id="global-wallet-selector-container">
-                    <label for="global-wallet-selector">Active Wallet:</label>
-                    <select id="global-wallet-selector"></select>
-                </li>
-            </ul>
-        </nav>
+    <header class="navbar">
+        <div class="navbar-left">
+            <a href="index.html" class="logo">Jupiter</a>
+            <nav class="nav-links">
+                <a href="index.html" class="active">Dashboard</a>
+                <a href="trading.html">Trading</a>
+                <a href="vaults.html">Vaults</a>
+                <a href="bot_lab.html">Bot Lab</a>
+                <a href="account.html">Account</a>
+            </nav>
+        </div>
+        <div class="navbar-right">
+            <div class="wallet-selector-container">
+                <select id="wallet-selector" class="wallet-selector"></select>
+            </div>
+            <button id="logout-button" class="logout-button">Logout</button>
+        </div>
     </header>
 
-    <main>
-        <h2>Dashboard</h2>
-        <section id="wallets">
-            <h3>Managed Wallets</h3>
-            <div id="wallet-list">
-                <!-- Wallet information will be dynamically inserted here -->
-            </div>
-            <div id="total-account-value"></div>
-        </section>
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 id="dashboard-title">Wallet Dashboard</h1>
+            <p id="total-account-value">Total Account Value: $0.00</p>
+        </div>
 
-        <section id="trading-activity">
-            <div class="tab">
-                <button class="tablinks active" onclick="openTab(event, 'Orders')">Open Orders</button>
-                <button class="tablinks" onclick="openTab(event, 'Positions')">Positions</button>
-                <button class="tablinks" onclick="openTab(event, 'OrderHistory')">Order History</button>
-                <button class="tablinks" onclick="openTab(event, 'TradeHistory')">Trade History</button>
-                <button class="tablinks" onclick="openTab(event, 'SpotBalances')">Spot Balances</button>
+        <div class="dashboard-grid">
+            <!-- Portfolio History Widget -->
+            <div class="widget large-widget">
+                <div class="widget-header">
+                    <h2>Portfolio History</h2>
+                </div>
+                <div class="widget-content">
+                    <div id="portfolio-chart" class="chart-container"></div>
+                </div>
             </div>
 
-            <div id="Orders" class="tabcontent" style="display: block;">
-                <h3>Open Orders</h3>
-                <div id="order-list"></div>
+            <!-- Wallets Widget -->
+            <div class="widget">
+                <div class="widget-header">
+                    <h2>Managed Wallets</h2>
+                </div>
+                <div class="widget-content">
+                    <div id="wallet-list" class="wallet-tree">
+                        <!-- Wallet tree will be dynamically inserted here -->
+                    </div>
+                </div>
             </div>
 
-            <div id="Positions" class="tabcontent">
-                <h3>Positions</h3>
-                <div id="position-list"></div>
+            <!-- Open Positions Widget -->
+            <div class="widget">
+                <div class="widget-header">
+                    <h2>Open Positions</h2>
+                </div>
+                <div class="widget-content">
+                    <div id="position-list" class="data-table-container"></div>
+                </div>
             </div>
 
-            <div id="OrderHistory" class="tabcontent">
-                <h3>Order History</h3>
-                <div id="order-history-list"></div>
+            <!-- Open Orders Widget -->
+            <div class="widget large-widget">
+                <div class="widget-header">
+                    <h2>Open Orders</h2>
+                    <button id="cancel-all-btn" class="button-danger small">Cancel All</button>
+                </div>
+                <div class="widget-content">
+                    <div id="order-list" class="data-table-container"></div>
+                </div>
             </div>
 
-            <div id="TradeHistory" class="tabcontent">
-                <h3>Trade History</h3>
-                <div id="trade-history-list"></div>
+            <!-- Other Trading Activity -->
+            <div class="widget large-widget">
+                 <div class="widget-header">
+                    <h2>Trading Activity</h2>
+                </div>
+                <div class="widget-content">
+                    <div class="tabs">
+                        <button class="tab-link active" data-tab="order-history">Order History</button>
+                        <button class="tab-link" data-tab="trade-history">Trade History</button>
+                        <button class="tab-link" data-tab="spot-balances">Spot Balances</button>
+                    </div>
+                    <div id="order-history" class="tab-content active data-table-container"></div>
+                    <div id="trade-history" class="tab-content data-table-container"></div>
+                    <div id="spot-balances" class="tab-content data-table-container"></div>
+                </div>
             </div>
-            <div id="SpotBalances" class="tabcontent">
-                <h3>Spot Balances</h3>
-                <div id="spot-balances-list"></div>
-            </div>
-        </section>
-
-        <section id="portfolio-history">
-            <h3>Portfolio History</h3>
-            <div id="portfolio-chart" style="height: 400px;"></div>
-        </section>
-
-        <section id="funding-rate-history">
-            <h3>Funding Rate History</h3>
-            <form id="funding-rate-form">
-                <label for="funding-symbol">Symbol:</label>
-                <input type="text" id="funding-symbol" value="BTC">
-                <button type="submit">Fetch</button>
-            </form>
-            <div id="funding-rate-history-list"></div>
-        </section>
+        </div>
     </main>
 
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-    <script src="js/global.js"></script>
+    <script src="js/shared.js"></script>
     <script src="js/dashboard.js"></script>
-    <script>
-        function openTab(evt, tabName) {
-            var i, tabcontent, tablinks;
-            tabcontent = document.getElementsByClassName("tabcontent");
-            for (i = 0; i < tabcontent.length; i++) {
-                tabcontent[i].style.display = "none";
-            }
-            tablinks = document.getElementsByClassName("tablinks");
-            for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].className = tablinks[i].className.replace(" active", "");
-            }
-            document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.className += " active";
-        }
-    </script>
 </body>
 </html>

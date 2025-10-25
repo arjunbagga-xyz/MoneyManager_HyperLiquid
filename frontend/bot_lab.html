@@ -4,124 +4,103 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trading Platform - Bot Lab</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <style>
-        #bot-code, #bot-schema {
-            width: 100%;
-            height: 200px;
-            font-family: monospace;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0,0.4);
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-        }
-    </style>
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/bot_lab.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Include CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/darcula.min.css">
 </head>
 <body>
-    <header>
-        <h1>Trading Platform</h1>
-        <nav>
-            <ul>
-                <li><a href="index.html">Dashboard</a></li>
-                <li><a href="trading.html">Trading</a></li>
-                <li><a href="vaults.html">Vaults</a></li>
-                <li><a href="bot_lab.html" class="active">Bot Lab</a></li>
-                <li><a href="account.html">Account</a></li>
-                <li id="global-wallet-selector-container">
-                    <label for="global-wallet-selector">Active Wallet:</label>
-                    <select id="global-wallet-selector"></select>
-                </li>
-            </ul>
-        </nav>
+    <header class="navbar">
+        <div class="navbar-left">
+            <a href="index.html" class="logo">Jupiter</a>
+            <nav class="nav-links">
+                <a href="index.html">Dashboard</a>
+                <a href="trading.html">Trading</a>
+                <a href="vaults.html">Vaults</a>
+                <a href="bot_lab.html" class="active">Bot Lab</a>
+                <a href="account.html">Account</a>
+            </nav>
+        </div>
+        <div class="navbar-right">
+            <div class="wallet-selector-container">
+                <select id="wallet-selector" class="wallet-selector"></select>
+            </div>
+            <button id="logout-button" class="logout-button">Logout</button>
+        </div>
     </header>
 
-    <main>
-        <h2>Bot Lab</h2>
-        <section id="bot-creation">
-            <h3>Create a New Bot</h3>
-            <form id="create-bot-form">
-                <div>
-                    <label for="bot-name">Bot Name:</label>
-                    <input type="text" id="bot-name" required>
-                </div>
-                <br>
-                <div>
-                    <label for="bot-code">Python Code:</label>
-                    <textarea id="bot-code" required></textarea>
-                </div>
-                <br>
-                <div>
-                    <label for="bot-schema">Input Schema (JSON):</label>
-                    <textarea id="bot-schema"></textarea>
-                </div>
-                <br>
-                <button type="submit">Save Bot</button>
-            </form>
-            <div id="bot-message"></div>
-        </section>
+    <main class="bot-lab-container">
+        <div class="bot-lab-header">
+            <h1>Bot Laboratory</h1>
+            <p>Design, test, and deploy your automated trading strategies.</p>
+        </div>
 
-        <hr>
+        <div class="tabs main-tabs">
+            <button class="tab-link active" data-tab="bot-library">Bot Library</button>
+            <button class="tab-link" data-tab="running-bots">Running Bots</button>
+        </div>
 
-        <section id="bot-list-section">
-            <h3>Saved Bots</h3>
-            <div id="bot-list">
-                <!-- Saved bots will be dynamically inserted here -->
+        <!-- Bot Library Section -->
+        <div id="bot-library" class="tab-content active">
+            <div class="bot-library-grid">
+                <div class="widget bot-list-widget">
+                    <div class="widget-header">
+                        <h2>My Bots</h2>
+                        <button id="new-bot-btn" class="button-primary small">+ New Bot</button>
+                    </div>
+                    <div id="bot-list" class="widget-content">
+                        <!-- List of saved bots will be populated here -->
+                    </div>
+                </div>
+                <div class="widget bot-editor-widget">
+                    <div class="widget-header">
+                        <h2 id="editor-title">Create New Bot</h2>
+                    </div>
+                    <div class="widget-content">
+                        <form id="bot-editor-form">
+                            <input type="hidden" id="bot-id">
+                            <div class="form-group">
+                                <label for="bot-name">Bot Name</label>
+                                <input type="text" id="bot-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="bot-code">Python Code</label>
+                                <textarea id="bot-code"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="bot-schema">Input Schema (JSON)</label>
+                                <textarea id="bot-schema"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="button-primary">Save Bot</button>
+                                <button type="button" id="run-bot-btn" class="button-secondary">Run</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-        </section>
+        </div>
+
+        <!-- Running Bots Section -->
+        <div id="running-bots" class="tab-content">
+            <div class="widget">
+                <div class="widget-header">
+                    <h2>Active Bot Processes</h2>
+                </div>
+                <div id="running-bot-list" class="widget-content">
+                    <!-- List of running bots will be populated here -->
+                </div>
+            </div>
+        </div>
     </main>
 
-    <!-- The Modal for Running a Bot -->
-    <div id="run-bot-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h3>Run Bot: <span id="run-bot-name"></span></h3>
-            <form id="run-bot-form">
-                <div>
-                    <label for="capital-allocation">Capital Allocation (USDC):</label>
-                    <input type="number" id="capital-allocation" step="any" required>
-                </div>
-                <div id="runtime-inputs">
-                    <!-- Dynamic inputs based on schema will go here -->
-                </div>
-                <br>
-                <button type="submit">Start Bot</button>
-            </form>
-            <div id="run-bot-message"></div>
-        </div>
-    </div>
-
-    <script src="js/global.js"></script>
+    <!-- Include CodeMirror JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
+    <script src="js/shared.js"></script>
     <script src="js/bot_lab.js"></script>
-
-    <!-- The Modal for Bot Dashboard -->
-    <div id="bot-dashboard-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-dashboard-button">&times;</span>
-            <h3>Bot Dashboard: <span id="dashboard-bot-name"></span></h3>
-            <div>
-                <h4>Status</h4>
-                <pre id="bot-status-content"></pre>
-            </div>
-            <div>
-                <h4>Logs</h4>
-                <pre id="bot-log-content"></pre>
-            </div>
-        </div>
-    </div>
 </body>
 </html>

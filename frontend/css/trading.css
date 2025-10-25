@@ -1,0 +1,178 @@
+/* Trading Page Specific Styles */
+.trading-grid-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* Main content and a sidebar */
+    grid-template-rows: auto 1fr auto; /* Header, chart, activity */
+    grid-template-areas:
+        "header order-form"
+        "chart  order-book"
+        "activity activity";
+    gap: 1.5rem;
+    height: calc(100vh - 80px); /* Full height minus navbar */
+    padding: 1.5rem;
+}
+
+.grid-header { grid-area: header; }
+.grid-chart { grid-area: chart; }
+.grid-order-book { grid-area: order-book; }
+.grid-order-form { grid-area: order-form; }
+.grid-activity { grid-area: activity; }
+
+.widget {
+    background-color: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.widget-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.widget-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+.widget-content {
+    padding: 1.5rem;
+    flex-grow: 1;
+    overflow: auto;
+}
+
+/* Header */
+.asset-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+.asset-selector {
+    background-color: var(--background-light);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.5rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+.price-display {
+    font-size: 1.5rem;
+    font-family: 'Roboto Mono', monospace;
+    font-weight: 600;
+}
+.change-display {
+    font-size: 1.2rem;
+    font-family: 'Roboto Mono', monospace;
+}
+.change-display.positive { color: var(--success-color); }
+.change-display.negative { color: var(--error-color); }
+
+/* Chart */
+.chart-container {
+    height: 100%;
+    width: 100%;
+}
+
+/* Order Form */
+#order-form .tabs {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 1rem;
+}
+#order-form .side-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.side-button {
+    background: var(--background-dark);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+.side-button.buy.active {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    color: #fff;
+}
+.side-button.sell.active {
+    background-color: var(--error-color);
+    border-color: var(--error-color);
+    color: #fff;
+}
+.trade-button {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    margin-top: 1rem;
+}
+.trade-button.buy { background-color: var(--success-color); }
+.trade-button.sell { background-color: var(--error-color); }
+
+
+/* Order Book */
+#order-book-content { padding: 0; }
+.order-book-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.3rem 1.5rem;
+    font-family: 'Roboto Mono', monospace;
+}
+.order-book-row .price { color: var(--text-primary); }
+.order-book-row .size { color: var(--text-secondary); }
+#order-book-asks .price { color: var(--error-color); }
+#order-book-bids .price { color: var(--success-color); }
+#order-book-mid-price {
+    padding: 0.8rem 1.5rem;
+    font-weight: 600;
+    font-size: 1.2rem;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+}
+
+/* Activity Section */
+.data-table-container { max-height: 250px; }
+
+/* General Form Styles from account.css */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+.form-group label {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+.form-group input {
+    background-color: var(--background-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.7rem;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+}
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+.tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1rem;
+}
+.tab-link {
+    background: none; border: none; color: var(--text-secondary); padding: 0.8rem 1rem;
+    cursor: pointer; font-size: 1rem; font-weight: 500; border-bottom: 2px solid transparent;
+}
+.tab-link.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }

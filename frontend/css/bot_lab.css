@@ -1,0 +1,142 @@
+/* Bot Lab Specific Styles */
+.bot-lab-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.bot-lab-header {
+    margin-bottom: 2rem;
+}
+.bot-lab-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+.bot-lab-header p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+/* Main Tabs */
+.main-tabs {
+    margin-bottom: 1.5rem;
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Bot Library */
+.bot-library-grid {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 1.5rem;
+    height: calc(100vh - 280px); /* Adjust based on header/footer height */
+}
+
+.widget {
+    background-color: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.widget-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.widget-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+.widget-content {
+    padding: 1.5rem;
+    flex-grow: 1;
+    overflow: auto;
+}
+
+#bot-list {
+    padding: 0.5rem;
+}
+.bot-list-item {
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+.bot-list-item:hover {
+    background-color: var(--background-hover);
+}
+.bot-list-item.active {
+    background-color: var(--primary-color);
+    color: #fff;
+    font-weight: 500;
+}
+
+/* Bot Editor */
+.bot-editor-widget .widget-content {
+    padding: 0;
+}
+#bot-editor-form {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+#bot-editor-form .form-group {
+    padding: 0 1.5rem;
+}
+.form-actions {
+    margin-top: auto;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--background-dark);
+    display: flex;
+    gap: 1rem;
+}
+
+/* CodeMirror Integration */
+.CodeMirror {
+    height: auto;
+    flex-grow: 1;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+.form-group .CodeMirror {
+     border: 1px solid var(--border-color);
+}
+
+/* Running Bots */
+#running-bot-list .card {
+    background-color: var(--background-dark);
+    padding: 1.5rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+}
+#running-bot-list .card h3 {
+    margin-top: 0;
+}
+#running-bot-list pre {
+    background-color: #000;
+    color: #f0f0f0;
+    padding: 1rem;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* General button styles from theme.css are used, plus small variant */
+.button-primary.small, .button-secondary.small {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+}
+.tab-link {
+    background: none; border: none; color: var(--text-secondary); padding: 0.8rem 1rem;
+    cursor: pointer; font-size: 1rem; font-weight: 500; border-bottom: 2px solid transparent;
+}
+.tab-link.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }

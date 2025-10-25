@@ -24,6 +24,9 @@ class WalletBase(BaseModel):
     name: str
     address: str
 
+class WalletCreateRequest(BaseModel):
+    name: str
+
 class WalletCreate(WalletBase):
     private_key: str
 
@@ -43,6 +46,11 @@ class Wallet(WalletBase):
 
 class OrderRequest(BaseModel):
     wallet_id: int
+    symbol: str
+    is_buy: bool
+
+class OrderRequestByAddress(BaseModel):
+    wallet_address: str
     symbol: str
     is_buy: bool
     sz: float
@@ -92,6 +100,16 @@ class VaultDepositRequest(BaseModel):
     vault_address: str
     amount: int
 
+class VaultDepositRequestByAddress(BaseModel):
+    wallet_address: str
+    vault_address: str
+    amount: int
+
+class VaultWithdrawRequestByAddress(BaseModel):
+    wallet_address: str
+    vault_address: str
+    amount: int
+
 
 class VaultWithdrawRequest(BaseModel):
     wallet_id: int
@@ -110,6 +128,11 @@ class BotBase(BaseModel):
 
 class BotCreate(BotBase):
     pass
+
+class BotUpdate(BaseModel):
+    name: Optional[str] = None
+    code: Optional[str] = None
+    input_schema: Optional[dict] = None
 
 class Bot(BotBase):
     id: int

@@ -54,14 +54,17 @@ async function initializeGlobalWalletSelector(token) {
             localStorage.setItem("activeWallet", wallets[0].address);
         }
 
-        // Initial dispatch of the event so pages can load data on start
-        selector.dispatchEvent(new Event('change'));
-
+        // Initial dispatch to load data for the active wallet
+        if (window.onWalletReady) {
+            window.onWalletReady(selector.value);
+        }
 
         selector.addEventListener("change", () => {
-            localStorage.setItem("activeWallet", selector.value);
-            // Optionally, dispatch a custom event to notify other scripts on the page
-            document.dispatchEvent(new CustomEvent('activeWalletChanged', { detail: { walletAddress: selector.value } }));
+            const newAddress = selector.value;
+            localStorage.setItem("activeWallet", newAddress);
+            if (window.onWalletReady) {
+                window.onWalletReady(newAddress);
+            }
         });
 
     } catch (error) {
