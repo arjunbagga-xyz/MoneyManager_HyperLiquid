@@ -22,20 +22,23 @@ class User(UserBase):
 
 class WalletBase(BaseModel):
     name: str
-    address: str
 
-class WalletCreate(WalletBase):
+class WalletCreate(BaseModel):
+    name: str
     private_key: str
 
 class WalletImport(WalletBase):
     private_key: str
 
-class WalletExport(WalletBase):
+class WalletExport(BaseModel):
     id: int
+    name: str
+    address: str
     owner_id: int
 
 class Wallet(WalletBase):
     id: int
+    address: str
     owner_id: int
 
     class Config:

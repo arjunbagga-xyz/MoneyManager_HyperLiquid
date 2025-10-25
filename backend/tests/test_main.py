@@ -1,5 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
+from eth_account import Account
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -77,21 +78,32 @@ def test_read_users_me(client: TestClient):
 
 def test_create_and_read_wallet(client: TestClient):
     auth_client = authenticated_client(client)
+
+    # Generate a new random private key for the test
+    account = Account.create()
+    private_key = account.key.hex()
+    address = account.address
+
     create_response = auth_client.post(
         "/wallets/",
-        json={"name": "test_wallet", "address": "test_address", "private_key": "test_key"},
+        json={"name": "test_wallet", "private_key": private_key},
     )
     assert create_response.status_code == 200, create_response.text
     create_data = create_response.json()
+
     assert create_data["name"] == "test_wallet"
-    assert create_data["address"] == "test_address"
+    assert create_data["address"] == address
     assert "id" in create_data
+
     read_response = auth_client.get("/wallets/")
     assert read_response.status_code == 200, read_response.text
     read_data = read_response.json()
+
     assert isinstance(read_data, list)
     assert len(read_data) == 1
     assert read_data[0]["name"] == "test_wallet"
+    assert read_data[0]["address"] == address
+    # The GET endpoint should not return the private key
     assert "private_key" not in read_data[0]
 
 def test_create_and_read_bot(client: TestClient):

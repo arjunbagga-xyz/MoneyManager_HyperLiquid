@@ -2,26 +2,65 @@
 document.addEventListener("DOMContentLoaded", () => {
     const token = localStorage.getItem("jwt");
     if (!token) {
-        window.location.href = "account.html";
+        // This is handled by shared.js, but as a fallback:
+        window.location.href = "login.html";
         return;
     }
 
-    let selectedAddress = null;
-let selectedWalletId = null; // We still need this for cancel operations
-    let ws = null;
+    // Use the global wallet ready function
+    onWalletReady(wallet => {
+        if (wallet) {
+            initializeDashboardForWallet(wallet, token);
+        } else {
+            document.getElementById("wallet-list").innerHTML = "<p>No wallet selected. Please select a wallet from the dropdown.</p>";
+        }
+    });
 
-    initializeDashboard(token);
+    // Also, display a list of all wallets
+    fetchAllWalletsOverview(token);
 });
 
-async function initializeDashboard(token) {
+// New function to initialize the dashboard for the SELECED wallet
+async function initializeDashboardForWallet(wallet, token) {
+    document.getElementById("total-account-value").style.display = 'block';
+
+    // Fetch all data for the selected master wallet
+    fetchConsolidatedState(wallet.address, token);
+    fetchOrderHistory(wallet.address, token);
+    fetchTradeHistory(wallet.address, token);
+    fetchPortfolioHistory(wallet.address, token);
+    initializeWebSocket(wallet.address);
+}
+
+// New function to fetch and display a simple list of ALL wallets
+async function fetchAllWalletsOverview(token) {
+    const walletListDiv = document.getElementById("wallet-list");
     try {
         const wallets = await fetchWallets(token);
-        const walletsWithSubaccounts = await fetchSubaccountsForWallets(wallets, token);
-        displayWalletsTree(walletsWithSubaccounts, token);
+        if (wallets.length === 0) {
+            walletListDiv.innerHTML = "<p>No wallets found. Add one on the Account page.</p>";
+            return;
+        }
+
+        const ul = document.createElement("ul");
+        for (const wallet of wallets) {
+            const li = document.createElement("li");
+            // Fetch balance for each wallet
+            const balanceResponse = await fetch(`/wallets/${wallet.address}/balance`, {
+                 headers: { "Authorization": `Bearer ${token}` }
+            });
+            const balanceData = await balanceResponse.json();
+            const balance = parseFloat(balanceData.balance).toFixed(2);
+
+            li.textContent = `${wallet.name} (${wallet.address.substring(0, 6)}...): ${balance} USDC`;
+            ul.appendChild(li);
+        }
+        walletListDiv.innerHTML = "";
+        walletListDiv.appendChild(ul);
+
     } catch (error) {
-        console.error("Error initializing dashboard:", error);
-        const walletList = document.getElementById("wallet-list");
-        walletList.innerHTML = "<p>Error loading wallets. Please try again.</p>";
+        console.error("Error fetching all wallets overview:", error);
+        walletListDiv.innerHTML = "<p>Error loading wallet list.</p>";
     }
 }
 
@@ -51,71 +90,6 @@ async function fetchSubaccountsForWallets(wallets, token) {
         }
     }
     return wallets;
-}
-
-function displayWalletsTree(wallets, token) {
-    const walletList = document.getElementById("wallet-list");
-    walletList.innerHTML = "";
-
-    if (wallets.length === 0) {
-        walletList.innerHTML = "<p>No wallets found. Add one on the Account page.</p>";
-        return;
-    }
-
-    const ul = document.createElement("ul");
-    wallets.forEach(wallet => {
-        // Master Wallet
-        const masterLi = document.createElement("li");
-        masterLi.textContent = `${wallet.name} - ${wallet.address}`;
-        masterLi.dataset.walletAddress = wallet.address;
-        masterLi.dataset.walletId = wallet.id; // Store the DB id
-        masterLi.style.cursor = "pointer";
-        masterLi.addEventListener("click", (e) => handleMasterWalletClick(e.currentTarget, token));
-        ul.appendChild(masterLi);
-
-        // Subaccounts
-        if (wallet.subaccounts && wallet.subaccounts.length > 0) {
-            const subUl = document.createElement("ul");
-            wallet.subaccounts.forEach(sub => {
-                const subLi = document.createElement("li");
-                subLi.textContent = `Sub: ${sub.name} - ${sub.subAccountUser}`;
-                subLi.dataset.walletAddress = sub.subAccountUser;
-                subLi.style.cursor = "pointer";
-                subLi.style.marginLeft = "20px";
-                subLi.addEventListener("click", (e) => {
-                    e.stopPropagation(); // Prevent master wallet click handler from firing
-                    handleSubaccountClick(sub.subAccountUser, token);
-                });
-                subUl.appendChild(subLi);
-            });
-            masterLi.appendChild(subUl);
-        }
-    });
-    walletList.appendChild(ul);
-}
-
-function handleMasterWalletClick(element, token) {
-    const walletAddress = element.dataset.walletAddress;
-    selectedAddress = walletAddress;
-    selectedWalletId = element.dataset.walletId;
-    document.getElementById("total-account-value").style.display = 'block';
-    fetchConsolidatedState(walletAddress, token);
-    // Note: Historical and WebSocket data will be based on the master account only for simplicity
-    fetchOrderHistory(walletAddress, token);
-    fetchTradeHistory(walletAddress, token);
-    fetchPortfolioHistory(walletAddress, token);
-    initializeWebSocket(walletAddress);
-}
-
-function handleSubaccountClick(subaccountAddress, token) {
-    selectedAddress = subaccountAddress;
-    selectedWalletId = null; // Can't cancel from subaccounts yet
-    document.getElementById("total-account-value").style.display = 'none';
-    fetchAddressState(subaccountAddress, token);
-    fetchOrderHistory(subaccountAddress, token);
-    fetchTradeHistory(subaccountAddress, token);
-    fetchPortfolioHistory(subaccountAddress, token);
-    initializeWebSocket(subaccountAddress);
 }
 
 async function fetchConsolidatedState(walletAddress, token) {

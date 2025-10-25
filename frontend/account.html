@@ -64,12 +64,24 @@
 
         <section id="wallet-management">
             <h3>Wallet Management</h3>
-            <button id="export-wallets-button">Export Wallets</button>
-            <input type="file" id="import-wallets-input" accept=".json" style="display: none;">
-            <button id="import-wallets-button">Import Wallets</button>
+            <div id="add-wallet-form-container">
+                <h4>Add New Wallet</h4>
+                <form id="add-wallet-form">
+                    <label for="wallet-name">Wallet Name:</label>
+                    <input type="text" id="wallet-name" name="wallet-name" required>
+                    <br>
+                    <label for="wallet-private-key">Private Key:</label>
+                    <input type="password" id="wallet-private-key" name="wallet-private-key" required>
+                    <br>
+                    <button type="submit">Add Wallet</button>
+                </form>
+            </div>
+            <div id="wallet-message"></div>
         </section>
     </main>
 
+    <script src="js/shared.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/account.js"></script>
 </body>
 </html>

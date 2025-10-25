@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from cryptography.fernet import Fernet
+from eth_account import Account
 from . import models, schemas
 from .passwords import get_password_hash
 from .config import settings
@@ -35,16 +36,33 @@ def get_wallet(db: Session, wallet_id: int, user_id: int):
 
 
 def create_wallet(db: Session, wallet: schemas.WalletCreate, user_id: int):
+    try:
+        # Ensure the private key is valid and derive the address
+        account = Account.from_key(wallet.private_key)
+        address = account.address
+    except Exception as e:
+        # Handle cases where the private key is invalid
+        raise ValueError(f"Invalid private key: {e}")
+
     encrypted_private_key = f.encrypt(wallet.private_key.encode()).decode()
+
+    # Check if a wallet with this address already exists for this user
+    existing_wallet = db.query(models.Wallet).filter_by(address=address, owner_id=user_id).first()
+    if existing_wallet:
+        raise ValueError(f"Wallet with address {address} already exists for this user.")
+
     db_wallet = models.Wallet(
         name=wallet.name,
-        address=wallet.address,
+        address=address,
         private_key=encrypted_private_key,
         owner_id=user_id,
     )
     db.add(db_wallet)
     db.commit()
     db.refresh(db_wallet)
+
+    # Return the decrypted private key in the response for immediate use if needed,
+    # but it won't be stored in this decrypted state.
     db_wallet.private_key = wallet.private_key
     return db_wallet
 

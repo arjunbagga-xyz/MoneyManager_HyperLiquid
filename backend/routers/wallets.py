@@ -25,15 +25,8 @@ def export_wallets(
     db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
 ):
     wallets = crud.get_wallets(db, user_id=current_user.id)
-    return wallets
-
-@router.post("/import")
-def import_wallets(
-    wallets: list[schemas.WalletImport], db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
-):
-    for wallet in wallets:
-        crud.create_wallet(db=db, wallet=wallet, user_id=current_user.id)
-    return {"status": "success"}
+    # Map the Wallet objects to WalletExport objects to exclude private keys
+    return [schemas.WalletExport(id=w.id, name=w.name, address=w.address, owner_id=w.owner_id) for w in wallets]
 
 @router.get("/{wallet_address}/balance")
 def get_wallet_balance(wallet_address: str, hl_api: HyperliquidAPI = Depends(HyperliquidAPI)):
