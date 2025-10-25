@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     const token = localStorage.getItem("jwt");
-    // Don't run on the account page if the user isn't logged in
-    if (!token && !window.location.pathname.endsWith('account.html')) {
-        window.location.href = "account.html";
+    // Redirect to login page if not authenticated, unless already on login/register page
+    if (!token && !window.location.pathname.endsWith('login.html')) {
+        window.location.href = "login.html";
         return;
     }
 
