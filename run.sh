@@ -27,7 +27,15 @@ npx playwright install-deps
 # --- Environment File ---
 if [ ! -f "backend/.env" ]; then
     echo "Creating .env file..."
-    python setup_env.py
+    # Generate a new encryption key
+    ENCRYPTION_KEY=$(python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
+
+    # Create the .env file
+    cat > backend/.env << EOF
+SECRET_KEY=a-secret-key
+ENCRYPTION_KEY=${ENCRYPTION_KEY}
+SQLALCHEMY_DATABASE_URL=sqlite:///./test.db
+EOF
 fi
 
 # --- Run Application ---
