@@ -55,6 +55,18 @@ def cancel_order(
     hl_api = HyperliquidAPI(private_key=wallet.private_key)
     return hl_api.cancel_order(symbol=cancel_request.symbol, oid=cancel_request.oid)
 
+@router.get("/{order_id}")
+def get_order_status(
+    order_id: int, wallet_address: str, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)
+):
+    # Wallet address is required by the API to fetch order status
+    wallet = db.query(models.Wallet).filter(models.Wallet.address == wallet_address, models.Wallet.owner_id == current_user.id).first()
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found or you are not the owner")
+
+    hl_api = HyperliquidAPI()  # No private key needed for this read-only operation
+    return hl_api.query_order_status(user_address=wallet_address, oid=order_id)
+
 @router.delete("/cancel-all/{wallet_address}")
 def cancel_all_orders(
     wallet_address: str, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)

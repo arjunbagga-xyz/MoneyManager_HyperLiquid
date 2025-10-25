@@ -97,14 +97,19 @@ class HyperliquidAPI(ExchangeInterface):
     def get_user_fills(self, user_address: str):
         return self.info.user_fills(user_address)
 
+    def query_order_status(self, user_address: str, oid: int):
+        return self.info.order_status(user_address, oid)
+
+    def get_user_fills_by_time(self, user_address: str, start_time: int, end_time: int):
+        return self.info.user_fills_by_time(user_address, start_time, end_time)
+
     def get_historical_portfolio_value(self, user_address: str, start_time: int, end_time: int):
         return self.info.user_portfolio_history(user_address, start_time, end_time)
 
     def place_spot_order(self, symbol: str, is_buy: bool, sz: float, limit_px: float, order_type: dict):
         if not self.exchange:
             raise Exception("Exchange not initialized. Provide a private key.")
-        # Spot orders are placed with the `order` method, with the `is_spot` flag set to True
-        return self.exchange.order(symbol, is_buy, sz, limit_px, order_type, is_spot=True)
+        return self.exchange.spot_order(symbol, is_buy, sz, limit_px, order_type)
 
     def get_spot_balances(self, user_address: str):
         user_state = self.info.user_state(user_address)
@@ -118,3 +123,6 @@ class HyperliquidAPI(ExchangeInterface):
 
     def get_l2_book(self, symbol: str):
         return self.info.l2_book(symbol)
+
+    def query_user_rate_limits(self, user_address: str):
+        return self.info.user_rate_limit(user_address)
