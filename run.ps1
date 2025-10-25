@@ -69,7 +69,7 @@ if (-not (Test-Path "backend\.env")) {
 secret_key=a-secret-key
 encryption_key=$ENCRYPTION_KEY
 sqlalchemy_database_url=sqlite:///./test.db
-"@ | Out-File -Encoding utf8 backend\.env
+"@ | Out-File -Encoding utf8NoBOM backend\.env
 } else {
     Write-Host ".env file already exists."
 }
