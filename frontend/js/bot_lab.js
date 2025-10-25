@@ -8,6 +8,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const runBotForm = document.getElementById("run-bot-form");
     const runBotMessage = document.getElementById("run-bot-message");
     const closeModal = document.getElementsByClassName("close-button")[0];
+    let activeWalletAddress = getActiveWallet();
+
+    document.addEventListener('activeWalletChanged', (event) => {
+        activeWalletAddress = event.detail.walletAddress;
+    });
 
     const dashboardModal = document.getElementById("bot-dashboard-modal");
     const closeDashboardModal = document.getElementsByClassName("close-dashboard-button")[0];
@@ -48,15 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
         currentBotId = botId;
         const bot = bots.find(b => b.id === botId);
         document.getElementById("run-bot-name").textContent = bot.name;
-
-        const walletSelector = document.getElementById("run-wallet-selector");
-        walletSelector.innerHTML = "";
-        wallets.forEach(wallet => {
-            const option = document.createElement("option");
-            option.value = wallet.id;
-            option.textContent = `${wallet.name} - ${wallet.address}`;
-            walletSelector.appendChild(option);
-        });
 
         const runtimeInputsContainer = document.getElementById("runtime-inputs");
         runtimeInputsContainer.innerHTML = "";
@@ -212,7 +208,11 @@ document.addEventListener("DOMContentLoaded", () => {
     runBotForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const wallet_id = parseInt(document.getElementById("run-wallet-selector").value);
+        const wallet_address = activeWalletAddress;
+        if (!wallet_address) {
+            alert("Please select a wallet first.");
+            return;
+        }
         const capital_allocation = parseFloat(document.getElementById("capital-allocation").value);
 
         const runtime_inputs = {};

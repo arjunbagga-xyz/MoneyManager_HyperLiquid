@@ -5,45 +5,26 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    const walletSelector = document.getElementById("wallet-selector");
     const orderForm = document.getElementById("order-form");
     const openOrdersTable = document.getElementById("open-orders-table").getElementsByTagName('tbody')[0];
     const positionsTable = document.getElementById("positions-table").getElementsByTagName('tbody')[0];
     const orderMessage = document.getElementById("order-message");
 
-    let wallets = [];
+    let activeWalletAddress = getActiveWallet();
 
     async function initialize() {
-        await fetchWallets();
-        if (wallets.length > 0) {
-            populateWalletSelector();
-            const selectedWalletId = walletSelector.value;
-            fetchAllTradingData(selectedWalletId);
+        if (activeWalletAddress) {
+            fetchAllTradingData(activeWalletAddress);
         }
         initializeChart();
     }
 
-    async function fetchWallets() {
-        try {
-            const response = await fetch("/wallets/", {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            if (!response.ok) throw new Error("Failed to fetch wallets");
-            wallets = await response.json();
-        } catch (error) {
-            console.error("Error fetching wallets:", error);
+    document.addEventListener('activeWalletChanged', (event) => {
+        activeWalletAddress = event.detail.walletAddress;
+        if (activeWalletAddress) {
+            fetchAllTradingData(activeWalletAddress);
         }
-    }
-
-    function populateWalletSelector() {
-        walletSelector.innerHTML = "";
-        wallets.forEach(wallet => {
-            const option = document.createElement("option");
-            option.value = wallet.id;
-            option.textContent = `${wallet.name} - ${wallet.address}`;
-            walletSelector.appendChild(option);
-        });
-    }
+    });
 
     async function fetchAllTradingData(walletId) {
         fetchOpenOrders(walletId);
@@ -169,7 +150,11 @@ function uuidv4() {
 
     orderForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const walletId = walletSelector.value;
+        const wallet_address = activeWalletAddress;
+        if (!wallet_address) {
+            alert("Please select a wallet first.");
+            return;
+        }
         const symbol = document.getElementById("symbol").value;
         const is_buy = document.getElementById("side").value === "buy";
         const sz = parseFloat(document.getElementById("size").value);
@@ -214,11 +199,6 @@ function uuidv4() {
             orderMessage.textContent = "An error occurred while placing the order.";
             orderMessage.style.color = "red";
         }
-    });
-
-    walletSelector.addEventListener("change", () => {
-        const selectedWalletId = walletSelector.value;
-        fetchAllTradingData(selectedWalletId);
     });
 
     let chart;

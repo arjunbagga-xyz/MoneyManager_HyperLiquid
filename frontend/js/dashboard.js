@@ -7,36 +7,29 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let selectedAddress = null;
-let selectedWalletId = null; // We still need this for cancel operations
+    let selectedWalletId = null; // We still need this for cancel operations
     let ws = null;
 
     initializeDashboard(token);
+
+    document.addEventListener('activeWalletChanged', (event) => {
+        const walletAddress = event.detail.walletAddress;
+        if (walletAddress) {
+            handleMasterWalletClick({ dataset: { walletAddress, walletId: event.detail.walletId } }, token);
+        }
+    });
 });
 
 async function initializeDashboard(token) {
     try {
-        const wallets = await fetchWallets(token);
-        const walletsWithSubaccounts = await fetchSubaccountsForWallets(wallets, token);
-        displayWalletsTree(walletsWithSubaccounts, token);
+        // The global selector is now responsible for fetching wallets
+        // We can remove the local fetch and display functions.
+        // The initial data load will be triggered by the 'activeWalletChanged' event.
     } catch (error) {
         console.error("Error initializing dashboard:", error);
         const walletList = document.getElementById("wallet-list");
         walletList.innerHTML = "<p>Error loading wallets. Please try again.</p>";
     }
-}
-
-async function fetchWallets(token) {
-    const response = await fetch("/wallets/", {
-        headers: { "Authorization": `Bearer ${token}` }
-    });
-    if (response.status === 401) {
-        window.location.href = "account.html";
-        return [];
-    }
-    if (!response.ok) {
-        throw new Error("Failed to fetch wallets");
-    }
-    return response.json();
 }
 
 async function fetchSubaccountsForWallets(wallets, token) {
@@ -51,47 +44,6 @@ async function fetchSubaccountsForWallets(wallets, token) {
         }
     }
     return wallets;
-}
-
-function displayWalletsTree(wallets, token) {
-    const walletList = document.getElementById("wallet-list");
-    walletList.innerHTML = "";
-
-    if (wallets.length === 0) {
-        walletList.innerHTML = "<p>No wallets found. Add one on the Account page.</p>";
-        return;
-    }
-
-    const ul = document.createElement("ul");
-    wallets.forEach(wallet => {
-        // Master Wallet
-        const masterLi = document.createElement("li");
-        masterLi.textContent = `${wallet.name} - ${wallet.address}`;
-        masterLi.dataset.walletAddress = wallet.address;
-        masterLi.dataset.walletId = wallet.id; // Store the DB id
-        masterLi.style.cursor = "pointer";
-        masterLi.addEventListener("click", (e) => handleMasterWalletClick(e.currentTarget, token));
-        ul.appendChild(masterLi);
-
-        // Subaccounts
-        if (wallet.subaccounts && wallet.subaccounts.length > 0) {
-            const subUl = document.createElement("ul");
-            wallet.subaccounts.forEach(sub => {
-                const subLi = document.createElement("li");
-                subLi.textContent = `Sub: ${sub.name} - ${sub.subAccountUser}`;
-                subLi.dataset.walletAddress = sub.subAccountUser;
-                subLi.style.cursor = "pointer";
-                subLi.style.marginLeft = "20px";
-                subLi.addEventListener("click", (e) => {
-                    e.stopPropagation(); // Prevent master wallet click handler from firing
-                    handleSubaccountClick(sub.subAccountUser, token);
-                });
-                subUl.appendChild(subLi);
-            });
-            masterLi.appendChild(subUl);
-        }
-    });
-    walletList.appendChild(ul);
 }
 
 function handleMasterWalletClick(element, token) {

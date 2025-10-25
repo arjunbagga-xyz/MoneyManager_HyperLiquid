@@ -16,6 +16,10 @@
                 <li><a href="bot_lab.html">Bot Lab</a></li>
                 <li><a href="vaults.html">Vaults</a></li>
                 <li><a href="account.html">Account</a></li>
+                <li id="global-wallet-selector-container">
+                    <label for="global-wallet-selector">Active Wallet:</label>
+                    <select id="global-wallet-selector"></select>
+                </li>
             </ul>
         </nav>
     </header>
@@ -81,6 +85,7 @@
     </main>
 
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="js/global.js"></script>
     <script src="js/dashboard.js"></script>
     <script>
         function openTab(evt, tabName) {

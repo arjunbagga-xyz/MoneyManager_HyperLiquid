@@ -42,6 +42,10 @@
                 <li><a href="vaults.html">Vaults</a></li>
                 <li><a href="bot_lab.html" class="active">Bot Lab</a></li>
                 <li><a href="account.html">Account</a></li>
+                <li id="global-wallet-selector-container">
+                    <label for="global-wallet-selector">Active Wallet:</label>
+                    <select id="global-wallet-selector"></select>
+                </li>
             </ul>
         </nav>
     </header>
@@ -88,10 +92,6 @@
             <h3>Run Bot: <span id="run-bot-name"></span></h3>
             <form id="run-bot-form">
                 <div>
-                    <label for="run-wallet-selector">Select Wallet:</label>
-                    <select id="run-wallet-selector" required></select>
-                </div>
-                <div>
                     <label for="capital-allocation">Capital Allocation (USDC):</label>
                     <input type="number" id="capital-allocation" step="any" required>
                 </div>
@@ -105,6 +105,7 @@
         </div>
     </div>
 
+    <script src="js/global.js"></script>
     <script src="js/bot_lab.js"></script>
 
     <!-- The Modal for Bot Dashboard -->
