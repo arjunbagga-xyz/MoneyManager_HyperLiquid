@@ -17,3 +17,4 @@ jules-scratch/
 storageState.json
 playwright-report/
 test-results/
+.venv/
